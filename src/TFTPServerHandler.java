@@ -154,7 +154,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         try {
             in = new BufferedInputStream(new FileInputStream (filename));
             super.read(in, sendReceiveSocket, receivePacket.getPort());
-        } catch (FileNotFoundException e) {
+        } catch (FileNotFoundException e) {//TODO Error handling FileNotFound exception
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -167,7 +167,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         try {
             out = new BufferedOutputStream(new FileOutputStream(newfile));
             super.write(out, sendReceiveSocket);
-        } catch (IOException e) {
+        } catch (IOException e) {//TODO Error handling Catch: Access denied and fileNotFound 
             e.printStackTrace();
         }
     }

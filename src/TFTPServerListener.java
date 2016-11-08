@@ -42,7 +42,7 @@ public class TFTPServerListener  extends Thread {
         }
         try {
             receiveSocket.setSoTimeout(tOut);
-        }catch (SocketException set){
+        }catch (SocketException set){ //TODO Error handling Timeout Exceptions
             set.printStackTrace();
             System.exit(1);
         }

@@ -124,7 +124,7 @@ public class TFTPHost {
                             printIncomingInfo(receivePacket, "ERROR", verbose);
                             System.exit(0);
                         }
-                    } catch (SocketTimeoutException e) {
+                    } catch (SocketTimeoutException e) {//TODO Error handling TimeoutException
                         timeout = true;
                         if (shutdown) {
                             System.exit(0);
@@ -149,7 +149,7 @@ public class TFTPHost {
                 try {
                     sendReceiveSocket.send(sendPacket);
                     System.out.print(sendPacket.getData());
-                } catch (IOException e) {
+                } catch (IOException e) {//TODO Error handling this could cause error on .getData() if its null
                     e.printStackTrace();
                     System.exit(1);
                 }

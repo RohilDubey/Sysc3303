@@ -33,7 +33,7 @@ public class TFTPClient extends TFTPHost{
             // port on the local host machine. This socket will be used to
             // send and receive UDP Datagram packets.
             sendReceiveSocket = new DatagramSocket();
-        } catch (SocketException se) {   // Can't create the socket.
+        } catch (SocketException se) {   // Can't create the socket.//TODO not sure what error this would throw, probably none we need to check for
             se.printStackTrace();
             System.exit(1);
         }
@@ -84,7 +84,7 @@ public class TFTPClient extends TFTPHost{
         try {
             sendPacket = new DatagramPacket(msg, len,
                 InetAddress.getLocalHost(), sendPort);
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException e) {//TODO Most likely won't throw error
             e.printStackTrace();
             System.exit(1);
         }
@@ -94,7 +94,7 @@ public class TFTPClient extends TFTPHost{
         // Send the datagram packet to the server via the send/receive socket.
         try {
             sendReceiveSocket.send(sendPacket);
-        } catch (IOException e) {
+        } catch (IOException e) {//TODO Error handling
             e.printStackTrace();
             System.exit(1);
         }
@@ -115,7 +115,7 @@ public class TFTPClient extends TFTPHost{
                         try {
                         	//sendReceiveSocket.setSoTimeout(10000);
                             sendReceiveSocket.receive(receivePacket);
-                        } catch (SocketTimeoutException e) {
+                        } catch (SocketTimeoutException e) {//TODO Error handling TimeOut
                             timeout = true;
                             if (shutdown) {
                                 System.exit(0);
@@ -139,7 +139,7 @@ public class TFTPClient extends TFTPHost{
                     }
                     
 
-                } catch (FileNotFoundException e) {
+                } catch (FileNotFoundException e) {//TODO Error handling File not found error
                     e.printStackTrace();
                 }
                 catch (IOException e) {
@@ -158,7 +158,7 @@ public class TFTPClient extends TFTPHost{
 
                 }
                 catch (IOException e) {
-                    e.printStackTrace();                }
+                    e.printStackTrace();}
             }
             
 
