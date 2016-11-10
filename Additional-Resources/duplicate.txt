@@ -1,0 +1,8 @@
+duplicate packet case method
+client -> turn on verbose(fix quiet mode) -> turn on test sim (fix menu refresh) -> sim menu (normal, lose packet, delay packet, duplicate packet, should show
+prior to sending the RRQ/WRQ) -> pick duplicate -> asks which packet do you want to duplicate from user (rrq/wrq, data/ack) -> duplicate the packet specified to the server
+-> server should throw error based upon proper error and send the packet to the client
+
+
+1) duplicate rrq/wrq must not be acknowledged, one per client at a time
+2) throw correct error based on the duplication 
