@@ -33,7 +33,7 @@ public class TFTPClient extends TFTPHost{
             // port on the local host machine. This socket will be used to
             // send and receive UDP Datagram packets.
             sendReceiveSocket = new DatagramSocket();
-        } catch (SocketException se) {   // Can't create the socket.//TODO not sure what error this would throw, probably none we need to check for
+        } catch (SocketException se) {   // Can't create the socket.
             se.printStackTrace();
             System.exit(1);
         }
@@ -84,7 +84,7 @@ public class TFTPClient extends TFTPHost{
         try {
             sendPacket = new DatagramPacket(msg, len,
                 InetAddress.getLocalHost(), sendPort);
-        } catch (UnknownHostException e) {//TODO Most likely won't throw error
+        } catch (UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -94,7 +94,7 @@ public class TFTPClient extends TFTPHost{
         // Send the datagram packet to the server via the send/receive socket.
         try {
             sendReceiveSocket.send(sendPacket);
-        } catch (IOException e) {//TODO Error handling
+        } catch (IOException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -107,6 +107,8 @@ public class TFTPClient extends TFTPHost{
         // Process the received datagram.
         while(!shutdown){
             if (type==WRITE) {//write request so the client must read on its side
+            	//TODO write has to be fixed so file path is specified to fetch file from
+            	// also file has to be saved in desktop/server folder 
                 try {
                     byte[] resp = new byte[4];
                     receivePacket = new DatagramPacket(resp,4);
@@ -115,7 +117,7 @@ public class TFTPClient extends TFTPHost{
                         try {
                         	//sendReceiveSocket.setSoTimeout(10000);
                             sendReceiveSocket.receive(receivePacket);
-                        } catch (SocketTimeoutException e) {//TODO Error handling TimeOut
+                        } catch (SocketTimeoutException e) {
                             timeout = true;
                             if (shutdown) {
                                 System.exit(0);
@@ -139,7 +141,7 @@ public class TFTPClient extends TFTPHost{
                     }
                     
 
-                } catch (FileNotFoundException e) {//TODO Error handling File not found error
+                } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
                 catch (IOException e) {
@@ -149,16 +151,19 @@ public class TFTPClient extends TFTPHost{
             else if (type==READ) {//read request so the client must write on his side
             	
             	//here the client doesn't have to wait for ack00 start directly to write
-                filename = "copy".concat(filename); //avoid overwriting the existing file
                 try {
+                	System.out.println("Where would you like to save the file?");
+                    String saveLocation = sc.next();
+                	File fileLocation = new File(saveLocation+filename); //Check for proper file path !!!!!
+                	// use trycatch for above to check for proper filepath 
                 	
-                    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(filename));
+                    BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
                     write(out,sendReceiveSocket);
                     out.close();
 
                 }
                 catch (IOException e) {
-                    e.printStackTrace();}
+                    e.printStackTrace();                }
             }
             
 
@@ -227,9 +232,6 @@ public class TFTPClient extends TFTPHost{
                 if (x.contains("y")||x.contains("Y")) {
                     this.run=Mode.TEST;
                 }
-
-                System.out.println("(R)ead or (w)rite?");
-                sc.reset();
             }
             else {
                 sc.reset(); //clear scanner

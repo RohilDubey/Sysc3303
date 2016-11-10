@@ -151,10 +151,13 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 
     public void read() { //first packet sent should be data01
         BufferedInputStream in;
+        String Home = System.getProperty("user.home");
+        String desktop = Home+"/Desktop/Server/";
+        		
         try {
-            in = new BufferedInputStream(new FileInputStream (filename));
+            in = new BufferedInputStream(new FileInputStream (desktop+filename));
             super.read(in, sendReceiveSocket, receivePacket.getPort());
-        } catch (FileNotFoundException e) {//TODO Error handling FileNotFound exception
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -162,12 +165,12 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     }
 
     public void write() {//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
-        String newfile = "copy"+(filename); //appends copy because everything's in the same folder on the same computer right now
+        String newfile = (filename); 
         BufferedOutputStream out;
         try {
             out = new BufferedOutputStream(new FileOutputStream(newfile));
             super.write(out, sendReceiveSocket);
-        } catch (IOException e) {//TODO Error handling Catch: Access denied and fileNotFound 
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
