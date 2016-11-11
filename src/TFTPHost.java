@@ -301,5 +301,50 @@ public class TFTPHost {
         }
         return rep;
     }
-
+	//Returns a false if an error packet is not recieved 
+	protected boolean parseErrorPacket(DatagramPacket e){
+		
+		//Get the bytes of the packet
+		e.getData();
+		//Get the error message received
+		byte[] rError = new byte[e.getData().length - 5];
+		System.arraycopy(e, 4, rError, 0, e.getData().length - 5);
+		
+		//Get the error code received
+		byte errorCode = e.getData()[3];
+		
+		//Display error type to the user
+		if(errorCode == 1){
+			System.out.println("Error Packet: 01: File Not Found!");
+			//Display the error message
+			String message = new String(rError);
+			System.out.println("Error Message: " + message);
+			return true;
+		}
+		
+		else if(errorCode == 2){
+			System.out.println("Error Packet: 02: Access Violation!");
+			//Display the error message
+			String message = new String(rError);
+			System.out.println("Error Message: " + message);
+			return true;
+		}
+		
+		else if(errorCode == 3){
+			System.out.println("Error Packet: 03: Disk Full!");
+			//Display the error message
+			String message = new String(rError);
+			System.out.println("Error Message: " + message);
+			return true;
+		}
+		
+		else if(errorCode == 6){
+			System.out.println("Error Packet: 06: File Already Exists!");
+			//Display the error message
+			String message = new String(rError);
+			System.out.println("Error Message: " + message);
+			return true;
+		}
+		return false;
+	}//parseErrorPacket() ends
 }
