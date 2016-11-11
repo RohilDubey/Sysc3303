@@ -7,7 +7,8 @@
 //based on SampleSolution for assignment1 given the Sept 19th,2016
 
 import java.io.*;
-import java.net.*; 
+import java.net.*;
+import java.util.Scanner; 
 //import java.util.*;
 
 public class TFTPSim extends TFTPHost {
@@ -33,6 +34,75 @@ public TFTPSim()
       System.exit(1);
    }
 }
+public void simPrompt(){//menu for creating errors
+	Scanner sc = new Scanner(System.in);
+	String choice;
+	Boolean loop=true;//if the choice is valid, loop becomes false and we won't need to re-choose
+	while(loop){
+	System.out.println("What would you like to simulate:");
+	System.out.println("Enter 0: Normal Operation");
+	System.out.println("Enter 1: Lose a Packet");
+	System.out.println("Enter 2: Delay a Packet");
+	System.out.println("Enter 3: Duplicate a Packet");
+	 
+    choice = sc.next();
+    if (choice.contains("0")) {//normal operation
+    	System.out.println("Normal Operation Selected");
+         loop=false;
+     }
+    else if(choice.contains("1")){//lose packet
+    	System.out.println("Lose packet selected"); 
+    	String packet = selectPacket();
+    	loop=false;
+     }
+    else if(choice.contains("2")){//delay packet
+    	System.out.println("Delay Packet selected"); 
+    	String packet = selectPacket();
+    	
+    	loop=false;
+     }
+    else if(choice.contains("3")){//duplicate packet
+    	System.out.println("Duplicate Packet selected");
+    	String packet = selectPacket();
+    	loop=false;
+     }
+    else{//invalid input
+    	System.out.println("Value entered is not valid");
+    }
+	}
+	sc.close();
+	
+}
+public String selectPacket(){
+	Scanner sc = new Scanner(System.in);
+	System.out.println("Which packet would you like to delay?");
+	System.out.println("1: RRQ" );
+	System.out.println("2: WRQ");
+	System.out.println("3: ACK");
+	System.out.println("4: DATA");
+	String choice = sc.next();
+	
+	if(choice.contains("1")){
+		System.out.println("RRQ Packet chosen");
+		
+	}
+	else if(choice.contains("2")){
+		System.out.println("WRQ Packet chosen");
+	}
+	else if(choice.contains("3")){
+		System.out.println("ACK Packet chosen");
+	}
+	else if(choice.contains("4")){
+		System.out.println("DATA Packet chosen");
+	}
+	else{
+		System.out.println("Choice is invalid, please choose again");
+		choice = selectPacket();
+	}
+	return choice;
+}
+
+
 
 public void passOnTFTP()
 {
@@ -165,6 +235,7 @@ public void passOnTFTP()
 public static void main( String args[] )
 {
    TFTPSim s = new TFTPSim();
+   
    s.passOnTFTP();
 }
 }
