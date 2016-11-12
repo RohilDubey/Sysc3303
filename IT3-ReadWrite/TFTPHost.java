@@ -12,7 +12,8 @@ public class TFTPHost {
 
 	protected boolean shutdown;
 	protected boolean timeout;
-	protected DatagramPacket sendPacket, receivePacket;
+	protected byte[] error;
+	protected DatagramPacket sendPacket, receivePacket, errorPacket;
 
 	public static final String[] mtype = { "ERROR", "RRQ", "WRQ", "DATA", "ACK" };
 
@@ -302,7 +303,25 @@ public class TFTPHost {
 		}
 		return rep;
 	}
-
+	
+	//Creates the error buffer
+	protected byte[] createErrorByte(byte errorCode, String errorMsg){
+		//Creation of error bytes
+		byte[] error = new byte[errorMsg.length() + 4 + 1]; 
+		//1st 2 bytes are 05
+		error[0] = 0; error[1] = 5;
+		//Followed by a 0 byte, and errorCode
+		error[2] = 0; error[3] = errorCode;
+		//received error converted to bytes
+		byte[] rError = new byte[errorMsg.length()];
+		rError = errorMsg.getBytes();
+		//Copy into error bytes
+		System.arraycopy(rError, 0, error, 4, rError.length);
+		//Last byte must be a 0 byte
+		error[error.length -1] = 0;
+		return error;
+	}//createErrorBytes() ends
+	
 	// Returns a false if an error packet is not recieved
 	protected boolean parseErrorPacket(DatagramPacket e) {
 
