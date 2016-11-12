@@ -62,7 +62,7 @@ public class TFTPServerListener  extends Thread {
        
         for (;;){
 
-            data = new byte[100];
+            data = new byte[516];
             receivePacket = new DatagramPacket(data, data.length);
 
             System.out.println("ServerListener: Waiting for packet.");
@@ -73,7 +73,6 @@ public class TFTPServerListener  extends Thread {
 	                timeout=false;
 	            } catch (InterruptedIOException t){
 	                //no request is received during tOut, the listener check the shutdown command.
-	                System.out.println("No file transfer requested");
 	                checkStat();
 	                timeout=true;
 	            }catch (IOException e) {
