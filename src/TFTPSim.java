@@ -190,19 +190,20 @@ public class TFTPSim extends TFTPHost {
 				if((actBlock == 0 && (firstTransfer))){ // For request debug only
 					if (debugChoice == 3){
 						// Send again
-					}
+					
 						try {
 							sendReceiveSocket.send(sendPacket);
 						} catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
 					}
+				}
 				}
 				
 				if((actBlock == parseBlock(sendPacket.getData()))){ //Check for block
 					if (debugChoice == 3){
 						// Send again
-					}
+					
 						try {
 							sendReceiveSocket.send(sendPacket);
 						} catch (IOException e) {
@@ -210,7 +211,7 @@ public class TFTPSim extends TFTPHost {
 							System.exit(1);
 					}
 				}
-				
+				}
 				// Construct a DatagramPacket for receiving packets up
 				// to 100 bytes long (the length of the byte array).
 
