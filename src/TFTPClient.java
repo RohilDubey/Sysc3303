@@ -225,19 +225,19 @@ public class TFTPClient extends TFTPHost{
     public void promptUser(){
 
         String x;
-
+        System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
         do{
-            System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
+           
             x = sc.next();
             if (x.contains("R")||x.contains("r")) {
                 sc.reset();
                 this.sendAndReceive(READ);
-                //System.exit(0);
+               
             }
             else if (x.contains("w")||x.contains("W")) {
                 sc.reset();
                 this.sendAndReceive(WRITE);
-                //System.exit(0);
+               
             }
             else if (x.contains("q")||x.contains("Q")) {
                 this.sendReceiveSocket.close();
@@ -250,16 +250,23 @@ public class TFTPClient extends TFTPHost{
                 if (x.contains("y")||x.contains("Y")) {
                     this.verbose = false;
                 }
-                System.out.println("Would you like to turn on test mode?");
+                else if(x.contains("n")||x.contains("N")){
+                	this.verbose=true;
+                	 }
+                else{
+                	System.out.println("INVALID INPUT");
+                	promptUser();
+                	 }
+            }
+             System.out.println("Would you like to turn on test mode? Y/N");
+               
                 x = sc.next();
                 sc.reset();
                 if (x.contains("y")||x.contains("Y")) {
                     this.run=Mode.TEST;
                 }
-            }
-            else {
-                sc.reset(); //clear scanner
-            }
+            
+         System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
         }while(sc.hasNext()) ;
         sc.close();
 

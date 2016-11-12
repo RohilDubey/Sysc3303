@@ -31,6 +31,7 @@ public class TFTPSim extends TFTPHost {
 	};
 	public static final byte[] readResp = { 0, 3, 0, 1 };
 	public static final byte[] writeResp = { 0, 4, 0, 0 };
+	public boolean losePacket;
 
 	public TFTPSim() {
 		super();
@@ -70,12 +71,22 @@ public class TFTPSim extends TFTPHost {
 				return; // Just exit out of method in case of normal operation
 			} else if (choice.contains("1")) {// lose packet
 				System.out.println("Lose packet selected");
+				debugChoice = 1;
 				packet = selectPacket();
+				if(packet.contains("2")) { // specific block (data/ack)
+					System.out.println("Which block would you like to lose?");
+					num = sc.next();
+					actBlock = Integer.parseInt(num);
+				} else { // request packet
+					actBlock = 0;
+				}				
 				loop = false;
+				
 			} else if (choice.contains("2")) {// delay packet
 				System.out.println("Delay Packet selected");
 				packet = selectPacket();
 				loop = false;
+				
 			} else if (choice.contains("3")) {// duplicate packet
 				System.out.println("Duplicate Packet selected");
 				debugChoice = 3;
@@ -117,18 +128,18 @@ public class TFTPSim extends TFTPHost {
 			System.out.println("1: RRQ");
 			System.out.println("2: ACK");
 		} else {
-			System.out.println("1: WRQ");
-			System.out.println("2: DATA");
+			System.out.println("3: WRQ");
+			System.out.println("4: DATA");
 		}
 		String choice = sc.next();
 
-		if (choice.contains("1: RRQ")) {
+		if (choice.contains("1")) {
 			System.out.println("RRQ Packet chosen");
-		} else if (choice.contains("1: WRQ")) {
+		} else if (choice.contains("3")) {
 			System.out.println("WRQ Packet chosen");
-		} else if (choice.contains("2: ACK")) {
+		} else if (choice.contains("2")) {
 			System.out.println("ACK Packet chosen");
-		} else if (choice.contains("2: DATA")) {
+		} else if (choice.contains("4")) {
 			System.out.println("DATA Packet chosen");
 		} else {
 			System.out.println("Choice is invalid, please choose again");
@@ -139,9 +150,10 @@ public class TFTPSim extends TFTPHost {
 	}
 
 	public void passOnTFTP() {
-
+		
 		byte[] data;
 		transferStatus = false;
+		losePacket=false;
 
 		for (;;) { // loop forever
 			do {
@@ -177,6 +189,18 @@ public class TFTPSim extends TFTPHost {
 
 				// Send the datagram packet to the server via the send/receive
 				// socket.
+				if(actBlock == 0){ // For request debug only
+					if (debugChoice == 1){
+						losePacket=true;	
+					}
+				}
+				if((actBlock == parseBlock(sendPacket.getData()))){ //if this is the block num you want to lose
+					if (debugChoice == 1){
+						losePacket=true;
+					}
+				}
+				
+				
 				if(!readTransfer){
 					checkPacket = sendPacket;
 				}
@@ -185,7 +209,9 @@ public class TFTPSim extends TFTPHost {
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
-				}
+				}//after the send and receive check and see if we need to duplicate a packet
+				
+				
 				
 				if((actBlock == 0 && (firstTransfer))){ // For request debug only
 					if (debugChoice == 3){
@@ -218,6 +244,8 @@ public class TFTPSim extends TFTPHost {
 				data = new byte[100];
 				receivePacket = new DatagramPacket(data, data.length);
 				System.out.println("Simulator: Waiting for packet.");
+				
+			if(losePacket==false){
 				try {
 					// Block until a datagram is received via sendReceiveSocket.
 					sendReceiveSocket.receive(receivePacket);
@@ -225,6 +253,9 @@ public class TFTPSim extends TFTPHost {
 					e.printStackTrace();
 					System.exit(1);
 				}
+				
+				
+				
 				serverPort = receivePacket.getPort();
 				printIncomingInfo(receivePacket, "Simulator", verbose);
 				len = receivePacket.getLength();
@@ -264,13 +295,18 @@ public class TFTPSim extends TFTPHost {
 					checkPacket.setLength(MAXLENGTH);
 					firstTransfer = false;
 				}
-			} while (checkPacket.getLength() == MAXLENGTH);
+			}
+			}//end of do
+			
+			while (checkPacket.getLength() == MAXLENGTH);
 			// We're finished with this socket, so close it.
+			if(losePacket==false){
 			sendSocket.close();
 			transferStatus = true;
-		} // end of loop
+			}
+		} // end of for loop
 
-	}
+	}//end PassOnTFTP
 
 	public static void main(String args[]) {
 		TFTPSim s = new TFTPSim();
