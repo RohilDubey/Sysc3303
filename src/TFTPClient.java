@@ -17,6 +17,8 @@ public class TFTPClient extends TFTPHost{
     public static String DEFAULT_FILE_PATH = "src/sysc3303/files/";
     private String filePath;
     
+    byte[] fn; // filename as an array of bytes
+    
     private int sendPort;
     private Mode run;
     byte requestFormatRead = 1;
@@ -42,8 +44,7 @@ public class TFTPClient extends TFTPHost{
 
     public void sendAndReceive(int type)
     {
-        byte[] msg = new byte[100], // message we send
-        fn, // filename as an array of bytes
+        byte[] msg = new byte[100], // message we send      
         md, // mode as an array of bytes
         data; // reply as array of bytes
         String filename, mode="Octet"; // filename and mode as Strings
@@ -125,36 +126,35 @@ public class TFTPClient extends TFTPHost{
                         }
                     }
                     printIncomingInfo(receivePacket,"Client",verbose);
-			
-		    //Check if error Packet was received
+                    
+                    //Check if error Packet was received
                     if(parseErrorPacket(receivePacket) == true){
                     	System.exit(1);
                     }
                     
                     //Not an error Packet
                     else{
-			    //chheck if packet received is ack00
-			    if (resp[0]==(byte)0 && resp[1]==(byte)4 && resp[2]==(byte)0 && resp[3]==(byte)0){
-				//ACK 0 received 
-					sendPort = receivePacket.getPort();
-					System.out.println(System.getProperty("user.dir"));
-				    BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
-				    read(in,sendReceiveSocket,sendPort);
-				    timeout = false;
-				    in.close();
-			    }
-			    else {//Server didn't answer correctly
-				System.out.println("First Ack invalid, shutdown");
-				System.exit(0);
-			    }
-		    }
+	                    //check if packet received is ack00
+	                    if (resp[0]==(byte)0 && resp[1]==(byte)4 && resp[2]==(byte)0 && resp[3]==(byte)0){
+	                        //ACK 0 received 
+	                        	sendPort = receivePacket.getPort();
+	                        	System.out.println(System.getProperty("user.dir"));
+	                            BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
+	                            read(in,sendReceiveSocket,sendPort);
+	                            timeout = false;
+	                            in.close();
+	                    }
+	                    
+	                    else {//Server didn't answer correctly
+	                    	System.out.println("First Ack invalid, shutdown");
+	                    	System.exit(0);
+	                    }
+                    }
                     
-
                 } catch (FileNotFoundException e) {//File Not Found
                 	System.out.println("File not found as error packet has been recieved. CODE: 0501");
                 	System.exit(1);
-                }
-                catch (IOException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -176,7 +176,6 @@ public class TFTPClient extends TFTPHost{
                     e.printStackTrace();                }
             }
             
-
             promptUser();
 
         } // end of loop
@@ -211,19 +210,19 @@ public class TFTPClient extends TFTPHost{
     public void promptUser(){
 
         String x;
-        System.out.println("(R)ead, (w)rite, (O)ptions, or (Q)uit?");
+
         do{
-            
+            System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
             x = sc.next();
             if (x.contains("R")||x.contains("r")) {
                 sc.reset();
                 this.sendAndReceive(READ);
-               
+                //System.exit(0);
             }
             else if (x.contains("w")||x.contains("W")) {
                 sc.reset();
                 this.sendAndReceive(WRITE);
-                
+                //System.exit(0);
             }
             else if (x.contains("q")||x.contains("Q")) {
                 this.sendReceiveSocket.close();
@@ -236,35 +235,16 @@ public class TFTPClient extends TFTPHost{
                 if (x.contains("y")||x.contains("Y")) {
                     this.verbose = false;
                 }
-                else if(x.contains("n")||x.contains("N")){
-                	this.verbose=true;
-                }
-                else{
-                	System.out.println("INVALID INPUT");
-                	promptUser();
-                }
-                
-                
-                System.out.println("Would you like to turn on test mode? Y/N");
+                System.out.println("Would you like to turn on test mode?");
                 x = sc.next();
                 sc.reset();
                 if (x.contains("y")||x.contains("Y")) {
                     this.run=Mode.TEST;
-                    sc.reset();
                 }
-                else if (x.contains("n")||x.contains("N")) {
-                    this.run=Mode.NORMAL;
-                    sc.reset();
-                }
-                else{
-                	System.out.println("INVALID INPUT");
-                	promptUser();
-                }
-            	}
-            else{
-            	System.out.println("INVALID INPUT");
             }
-            System.out.println("(R)ead, (w)rite, (O)ptions, or (Q)uit?");
+            else {
+                sc.reset(); //clear scanner
+            }
         }while(sc.hasNext()) ;
         sc.close();
 
