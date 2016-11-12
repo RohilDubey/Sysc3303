@@ -9,9 +9,6 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class TFTPServerHandler extends TFTPHost implements Runnable {
     // types of requests we can receive
@@ -20,9 +17,6 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     // responses for valid requests
     public static final byte[] readResp = {0, 3, 0, 1};
     public static final byte[] writeResp = {0, 4, 0, 0};
-    
-    //To check for error
-    public boolean boolError = false;
 
     // UDP datagram packets and sockets used to send / receive
     String filename;
@@ -95,6 +89,51 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 	            if (k==j+1) req=Request.ERROR; // mode is 0 bytes long
 	            mode = new String(data,j,k-j-1);
 	        }
+
+        if(req!=Request.ERROR) { // check for mode
+            // search for next all 0 byte
+            for(k=j+1;k<len;k++) { 
+                if (data[k] == 0) break;
+            }
+            if (k==len) req=Request.ERROR; // didn't find a 0 byte
+            if (k==j+1) req=Request.ERROR; // mode is 0 bytes long
+            mode = new String(data,j,k-j-1);
+        }
+
+        if(k!=len-1) req=Request.ERROR; // other stuff at end of packet        
+
+        // Create a response.
+        if (req==Request.READ) { // for Read it's 0301
+            response = readResp;
+        } else if (req==Request.WRITE) { // for Write it's 0400
+            response = writeResp;//ACK00
+        } else { // it was invalid, just quit
+            //throw new Exception("Not yet implemented");
+        }
+
+        printIncomingInfo(receivePacket,"Server",verbose);
+
+        // Construct a datagram packet that is to be sent to a specified port
+        // on a specified host.
+        // The arguments are:
+        //  data - the packet data (a byte array). This is the response.
+        //  receivePacket.getLength() - the length of the packet data.
+        //     This is the length of the msg we just created.
+        //  receivePacket.getAddress() - the Internet address of the
+        //     destination host. Since we want to send a packet back to the
+        //     client, we extract the address of the machine where the
+        //     client is running from the datagram that was sent to us by
+        //     the client.
+        //  receivePacket.getPort() - the destination port number on the
+        //     destination host where the client is running. The client
+        //     sends and receives datagrams through the same socket/port,
+        //     so we extract the port that the client used to send us the
+        //     datagram, and use that as the destination port for the TFTP
+        //     packet.
+
+        if (req==Request.WRITE) { //if a write request is received the server must send ACK00
+        	sendPacket = new DatagramPacket(response, response.length,
+	        receivePacket.getAddress(), receivePacket.getPort());
 	
 	        if(k!=len-1) req=Request.ERROR; // other stuff at end of packet        
 	
@@ -107,6 +146,11 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 	            //throw new Exception("Not yet implemented");
 	        	//Might need to retransmit
 	        	System.exit(1);
+	        try {
+	            sendReceiveSocket.send(sendPacket);
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            System.exit(1);
 	        }
 	
 	        printIncomingInfo(receivePacket,"Server",verbose);
@@ -145,6 +189,8 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		        System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 		        System.out.println();
 	        }
+	        System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+	        System.out.println();
         }
         
     }
@@ -257,6 +303,8 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		    }
 		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 		    System.out.println();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

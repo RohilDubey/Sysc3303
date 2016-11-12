@@ -14,6 +14,7 @@ public class TFTPHost {
     protected boolean timeout;
     protected byte[] error;
     protected DatagramPacket sendPacket,receivePacket, errorPacket;
+    protected DatagramPacket sendPacket,receivePacket;
     
     public static final String[] mtype = {"ERROR","RRQ","WRQ","DATA","ACK"};
 

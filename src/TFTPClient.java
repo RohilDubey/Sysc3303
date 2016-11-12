@@ -6,7 +6,6 @@
 
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 public class TFTPClient extends TFTPHost{
 
@@ -16,8 +15,6 @@ public class TFTPClient extends TFTPHost{
 
     public static String DEFAULT_FILE_PATH = "src/sysc3303/files/";
     private String filePath;
-    
-    byte[] fn; // filename as an array of bytes
     
     private int sendPort;
     private Mode run;
@@ -44,7 +41,8 @@ public class TFTPClient extends TFTPHost{
 
     public void sendAndReceive(int type)
     {
-        byte[] msg = new byte[100], // message we send      
+        byte[] msg = new byte[100], // message we send
+        fn, // filename as an array of bytes
         md, // mode as an array of bytes
         data; // reply as array of bytes
         String filename, mode="Octet"; // filename and mode as Strings
@@ -130,6 +128,15 @@ public class TFTPClient extends TFTPHost{
                     //Check if error Packet was received
                     if(parseErrorPacket(receivePacket) == true){
                     	System.exit(1);
+                    //chheck if packet received is ack00
+                    if (resp[0]==(byte)0 && resp[1]==(byte)4 && resp[2]==(byte)0 && resp[3]==(byte)0){
+                        //ACK 0 received 
+                        	sendPort = receivePacket.getPort();
+                        	System.out.println(System.getProperty("user.dir"));
+                            BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
+                            read(in,sendReceiveSocket,sendPort);
+                            timeout = false;
+                            in.close();
                     }
                     
                     //Not an error Packet
@@ -149,12 +156,20 @@ public class TFTPClient extends TFTPHost{
 	                    	System.out.println("First Ack invalid, shutdown");
 	                    	System.exit(0);
 	                    }
+                    else {//Server didn't answer correctly
+                    	System.out.println("First Ack invalid, shutdown");
+                    	System.exit(0);
                     }
                     
                 } catch (FileNotFoundException e) {//File Not Found
                 	System.out.println("File not found as error packet has been recieved. CODE: 0501");
                 	System.exit(1);
                 } catch (IOException e) {
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -166,7 +181,6 @@ public class TFTPClient extends TFTPHost{
                     String saveLocation = sc.next();
                 	File fileLocation = new File(saveLocation+filename); //Check for proper file path !!!!!
                 	// use trycatch for above to check for proper filepath 
-                	
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
                     write(out,sendReceiveSocket);
                     out.close();
@@ -176,6 +190,7 @@ public class TFTPClient extends TFTPHost{
                     e.printStackTrace();                }
             }
             
+
             promptUser();
 
         } // end of loop
