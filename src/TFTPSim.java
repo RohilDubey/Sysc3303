@@ -159,7 +159,13 @@ public class TFTPSim extends TFTPHost {
 			do {
 				// Construct a DatagramPacket for receiving packets up
 				// to 100 bytes long (the length of the byte array).
-
+				//if(actBlock == 0){ // For request debug only
+					if (debugChoice == 1){
+						losePacket=true;	
+					}
+				//}
+				
+				if(losePacket==false){
 				data = new byte[100];
 				receivePacket = new DatagramPacket(data, data.length);
 
@@ -189,18 +195,11 @@ public class TFTPSim extends TFTPHost {
 
 				// Send the datagram packet to the server via the send/receive
 				// socket.
-				if(actBlock == 0){ // For request debug only
-					if (debugChoice == 1){
-						losePacket=true;	
-					}
-				}
 				if((actBlock == parseBlock(sendPacket.getData()))){ //if this is the block num you want to lose
 					if (debugChoice == 1){
 						losePacket=true;
 					}
 				}
-				
-				
 				if(!readTransfer){
 					checkPacket = sendPacket;
 				}
@@ -245,7 +244,7 @@ public class TFTPSim extends TFTPHost {
 				receivePacket = new DatagramPacket(data, data.length);
 				System.out.println("Simulator: Waiting for packet.");
 				
-			if(losePacket==false){
+			
 				try {
 					// Block until a datagram is received via sendReceiveSocket.
 					sendReceiveSocket.receive(receivePacket);
