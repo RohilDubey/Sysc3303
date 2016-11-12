@@ -126,23 +126,34 @@ public class TFTPClient extends TFTPHost{
                             }
                         }
                     }
+                    
                     printIncomingInfo(receivePacket,"Client",verbose);
-                    //check if packet received is ack00
-                    if (resp[0]==(byte)0 && resp[1]==(byte)4 && resp[2]==(byte)0 && resp[3]==(byte)0){
-                        //ACK 0 received 
-                            BufferedInputStream in = new BufferedInputStream(new FileInputStream(fileLocation));
-                            read(in,sendReceiveSocket,receivePacket.getPort());
-                            timeout = false;
-                            in.close();
+                    
+                    //Check if error Packet was received
+                    if(parseErrorPacket(receivePacket) == true){
+                    	System.exit(1);
                     }
-                    else {//Server didn't answer correctly
-                    	System.out.println("First Ack invalid, shutdown");
-                    	System.exit(0);
+                    
+                    //Not an error Packet
+                    else{
+                        //check if packet received is ack00
+                        if (resp[0]==(byte)0 && resp[1]==(byte)4 && resp[2]==(byte)0 && resp[3]==(byte)0){
+                            //ACK 0 received 
+                                BufferedInputStream in = new BufferedInputStream(new FileInputStream(fileLocation));
+                                read(in,sendReceiveSocket,receivePacket.getPort());
+                                timeout = false;
+                                in.close();
+                        }
+                        else {//Server didn't answer correctly
+                            System.out.println("First Ack invalid, shutdown");
+                            System.exit(0);
+                        }
                     }
                     
 
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
+                } catch (FileNotFoundException e) {//File Not Found
+                	System.out.println("File not found as error packet has been recieved. CODE: 0501");
+                	System.exit(1);
                 }
                 catch (IOException e) {
                     e.printStackTrace();
