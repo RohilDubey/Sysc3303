@@ -128,17 +128,8 @@ public class TFTPClient extends TFTPHost{
                     //Check if error Packet was received
                     if(parseErrorPacket(receivePacket) == true){
                     	System.exit(1);
-                    //chheck if packet received is ack00
-                    if (resp[0]==(byte)0 && resp[1]==(byte)4 && resp[2]==(byte)0 && resp[3]==(byte)0){
-                        //ACK 0 received 
-                        	sendPort = receivePacket.getPort();
-                        	System.out.println(System.getProperty("user.dir"));
-                            BufferedInputStream in = new BufferedInputStream(new FileInputStream(filename));
-                            read(in,sendReceiveSocket,sendPort);
-                            timeout = false;
-                            in.close();
                     }
-                    
+                                        
                     //Not an error Packet
                     else{
 	                    //check if packet received is ack00
@@ -156,22 +147,14 @@ public class TFTPClient extends TFTPHost{
 	                    	System.out.println("First Ack invalid, shutdown");
 	                    	System.exit(0);
 	                    }
-                    else {//Server didn't answer correctly
-                    	System.out.println("First Ack invalid, shutdown");
-                    	System.exit(0);
                     }
                     
                 } catch (FileNotFoundException e) {//File Not Found
                 	System.out.println("File not found as error packet has been recieved. CODE: 0501");
                 	System.exit(1);
                 } catch (IOException e) {
-
-                } catch (FileNotFoundException e) {
                     e.printStackTrace();
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
+                } 
             }
             else if (type==READ) {//read request so the client must write on his side
             	
