@@ -290,15 +290,11 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
 				System.out.println();
 				
-				if(!readTransfer && firstTransfer){ // In case of write and its the first transfer
-					// therefore ack will not have max length and we have to circumvent that.
-					checkPacket.setLength(MAXLENGTH);
-					firstTransfer = false;
-				}
+				
 			}
 			}//end of do
 			
-			while (checkPacket.getLength() == MAXLENGTH);
+			while (checkPacket.getLength() == MAXLENGTH || (firstTransfer && !readTransfer));
 			// We're finished with this socket, so close it.
 			if(losePacket==false){
 			sendSocket.close();
