@@ -24,6 +24,7 @@ public class TFTPSim extends TFTPHost {
 	private int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
 	private boolean transferStatus, readTransfer, firstTransfer, lengthCheck;
 	private Request req; // READ, WRITE or ERROR
+	private boolean clientOrServer,selectionFlag;
 
 	// responses for valid requests
 	public static final int MAXLENGTH = 516;
