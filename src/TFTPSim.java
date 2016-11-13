@@ -18,11 +18,11 @@ public class TFTPSim extends TFTPHost {
 
 	private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
 	private DatagramPacket checkPacket;
-	boolean finalMessage;
-	String packet;
-	int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
-	boolean transferStatus, readTransfer, firstTransfer, lengthCheck;
-	Request req; // READ, WRITE or ERROR
+	private boolean finalMessage;
+	private String packet;
+	private int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
+	private boolean transferStatus, readTransfer, firstTransfer, lengthCheck;
+	private Request req; // READ, WRITE or ERROR
 
 	// responses for valid requests
 	public static final int MAXLENGTH = 516;
