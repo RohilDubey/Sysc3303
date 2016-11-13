@@ -15,10 +15,10 @@ public class TFTPHost {
 	protected byte[] error;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
 
-	public static final String[] mtype = { "ERROR", "RRQ", "WRQ", "DATA", "ACK" };
+	protected static final String[] mtype = { "ERROR", "RRQ", "WRQ", "DATA", "ACK" };
 
-	static Scanner sc;
-	boolean verbose;
+	protected static Scanner sc;
+	protected boolean verbose;
 
 	public void setShutdown() {
 		shutdown = true;

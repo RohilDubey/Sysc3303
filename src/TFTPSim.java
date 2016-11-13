@@ -1,4 +1,5 @@
 
+
 //This class is the beginnings of an error simulator for a simple TFTP server 
 //based on UDP/IP. The simulator receives a read or write packet from a client and
 //passes it on to the server.  Upon receiving a response, it passes it on to the 
@@ -18,11 +19,11 @@ public class TFTPSim extends TFTPHost {
 
 	private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
 	private DatagramPacket checkPacket;
-	boolean finalMessage;
-	String packet;
-	int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
-	boolean transferStatus, readTransfer, firstTransfer, lengthCheck, clientOrServer, selectionFlag;
-	Request req; // READ, WRITE or ERROR
+	private boolean finalMessage;
+	private String packet;
+	private int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
+	private boolean transferStatus, readTransfer, firstTransfer, lengthCheck;
+	private Request req; // READ, WRITE or ERROR
 
 	// responses for valid requests
 	public static final int MAXLENGTH = 516;

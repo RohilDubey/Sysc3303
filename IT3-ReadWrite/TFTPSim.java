@@ -21,7 +21,7 @@ public class TFTPSim extends TFTPHost {
 	boolean finalMessage;
 	String packet;
 	int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
-	boolean transferStatus, readTransfer, firstTransfer, lengthCheck;
+	boolean transferStatus, readTransfer, firstTransfer, lengthCheck, clientOrServer, selectionFlag;
 	Request req; // READ, WRITE or ERROR
 
 	// responses for valid requests
@@ -80,8 +80,6 @@ public class TFTPSim extends TFTPHost {
 				} else { // request packet
 					actBlock = 0;
 				}
-				System.out.println("How long would you like to delay for? (in ms)");
-				delay = sc.nextInt();
 				loop = false;
 			} else if (choice.contains("2")) {// delay packet
 				System.out.println("Delay packet selected");
@@ -90,6 +88,8 @@ public class TFTPSim extends TFTPHost {
 				if (packet.contains("2")) { // specific block (data/ack)
 					System.out.println("Which block would you like to delay?");
 					num = sc.next();
+					System.out.println("How long do you want to delay the block?");
+					delay = sc.nextInt();
 					actBlock = Integer.parseInt(num);
 				} else { // request packet
 					actBlock = 0;
@@ -130,20 +130,36 @@ public class TFTPSim extends TFTPHost {
 	public String selectPacket() {
 		Scanner sc = new Scanner(System.in);
 		readTransfer = checkRequest();
-		System.out.println("Which packet would you like to act on?");
-		if (readTransfer) {
-			System.out.println("[1]: RRQ");
-			System.out.println("[2]: ACK");
-		} else {
-			System.out.println("[1]: WRQ");
-			System.out.println("[2]: DATA");
-		}
 		String choice = sc.next();
-
-		if ((!choice.contains("1")) && (!choice.contains("2"))) {
-			System.out.println("Choice is invalid, please choose again");
-			choice = selectPacket();
-		}
+		do {
+			System.out.println("Would you like to act on the [S]erver or [C]lient?");
+			if (choice.contains("S") || choice.contains("s")) {
+				clientOrServer = true;
+				selectionFlag = true;
+			} else if (choice.contains("C") || choice.contains("c")) {
+				clientOrServer = false;
+				selectionFlag = true;
+			}
+		} while (!selectionFlag);
+		selectionFlag = false;
+		System.out.println("Which packet type would you like to act on?");
+		do {
+			if (readTransfer) {
+				System.out.println("[1]: RRQ");
+				System.out.println("[2]: ACK");
+			} else {
+				System.out.println("[1]: WRQ");
+				System.out.println("[2]: DATA");
+			}
+			if ((!choice.contains("1")) && (!choice.contains("2"))) {
+				System.out.println("Choice is invalid, please choose again");
+				choice = selectPacket();
+				selectionFlag = false;
+			} else {
+				selectionFlag = true;
+			}
+		} while (!selectionFlag);
+		selectionFlag = false;
 		return choice;
 	}
 
@@ -185,9 +201,11 @@ public class TFTPSim extends TFTPHost {
 				if (!readTransfer) {
 					checkPacket = sendPacket;
 				}
-
-				if ((actBlock == 0 && (firstTransfer))) { // For request debug
-															// only
+				// Debug options for Client
+				if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { // For
+																				// request
+																				// debug
+					// only
 					if (debugChoice == 1) {
 						System.out.println(); // Empty because we will skip this
 												// packet
@@ -224,9 +242,9 @@ public class TFTPSim extends TFTPHost {
 					firstTransfer = false;
 				}
 
-				else if ((actBlock == parseBlock(sendPacket.getData()))) { // check
-																			// for
-																			// block
+				else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { // check
+					// for
+					// block
 					if (debugChoice == 1) {
 						System.out.println(); // Empty because we will skip this
 												// packet
@@ -313,11 +331,96 @@ public class TFTPSim extends TFTPHost {
 					if (readTransfer) {
 						checkPacket = sendPacket;
 					}
-					try {
-						sendSocket.send(sendPacket);
-					} catch (IOException e) {
-						e.printStackTrace();
-						System.exit(1);
+					// Debug options for Server
+					if ((actBlock == 0 && (firstTransfer) && clientOrServer)) { // For
+																					// request
+																					// debug
+						// only
+						if (debugChoice == 1) {
+							System.out.println(); // Empty because we will skip
+													// this
+							// packet
+						} else if (debugChoice == 2) {
+							try {
+								Thread.sleep(delay);
+							} catch (InterruptedException e) {
+							}
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							try {
+								sendReceiveSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+
+						} else if (debugChoice == 3) {
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							// send twice
+							try {
+								sendReceiveSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+							try {
+								sendReceiveSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+						}
+						firstTransfer = false;
+					}
+
+					else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { // check
+						// for
+						// block
+						if (debugChoice == 1) {
+							System.out.println(); // Empty because we will skip
+													// this
+							// packet
+						} else if (debugChoice == 2) {
+							try {
+								Thread.sleep(delay);
+							} catch (InterruptedException e) {
+							}
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							try {
+								sendSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+
+						} else if (debugChoice == 3) {
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							// Send twice
+							try {
+								sendSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+							try {
+								sendSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+						}
+						if (!finalMessage && lengthCheck) {
+							finalMessage = true;
+						}
+					} else {
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
+						try {
+							sendSocket.send(sendPacket);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
 					}
 				}
 
