@@ -18,7 +18,7 @@ public class TFTPClient extends TFTPHost{
     
     private int sendPort;
     private Mode run;
-    byte requestFormatRead = 1;
+    public byte requestFormatRead = 1;
     //we can run in normal (send directly to server) or test
     //(send to simulator) mode
     public static enum Mode { NORMAL, TEST};
