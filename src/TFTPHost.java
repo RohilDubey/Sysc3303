@@ -17,8 +17,8 @@ public class TFTPHost {
 
 	public static final String[] mtype = { "ERROR", "RRQ", "WRQ", "DATA", "ACK" };
 
-	static Scanner sc;
-	boolean verbose;
+	public static Scanner sc;
+	public boolean verbose;
 
 	public void setShutdown() {
 		shutdown = true;
