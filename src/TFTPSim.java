@@ -80,8 +80,6 @@ public class TFTPSim extends TFTPHost {
 				} else { // request packet
 					actBlock = 0;
 				}
-				System.out.println("How long would you like to delay for? (in ms)");
-				delay = sc.nextInt();
 				loop = false;
 			} else if (choice.contains("2")) {// delay packet
 				System.out.println("Delay packet selected");
@@ -90,6 +88,8 @@ public class TFTPSim extends TFTPHost {
 				if (packet.contains("2")) { // specific block (data/ack)
 					System.out.println("Which block would you like to delay?");
 					num = sc.next();
+					System.out.println("How long do you want to delay the block?");
+					delay = sc.nextInt();
 					actBlock = Integer.parseInt(num);
 				} else { // request packet
 					actBlock = 0;
