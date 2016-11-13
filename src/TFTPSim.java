@@ -127,7 +127,7 @@ public class TFTPSim extends TFTPHost {
 		return readTransfer;
 	}
 
-	public String selectPacket() {
+		public String selectPacket() {
 		Scanner sc = new Scanner(System.in);
 		readTransfer = checkRequest();
 		String choice;
@@ -143,8 +143,8 @@ public class TFTPSim extends TFTPHost {
 			}
 		} while (!selectionFlag);
 		selectionFlag = false;
+		sc.reset();
 		System.out.println("Which packet type would you like to act on?");
-		choice = sc.next();
 		do {
 			if (readTransfer) {
 				System.out.println("[1]: RRQ");
@@ -153,17 +153,23 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("[1]: WRQ");
 				System.out.println("[2]: DATA");
 			}
+			choice = sc.next();
 			if ((!choice.contains("1")) && (!choice.contains("2"))) {
 				System.out.println("Choice is invalid, please choose again");
-				choice = selectPacket();
+				selectionFlag = false;
+			}
+			if ((choice.contains("1")) && (choice.contains("2"))) {
+				System.out.println("Choice is invalid, please choose again");
 				selectionFlag = false;
 			} else {
 				selectionFlag = true;
 			}
 		} while (!selectionFlag);
 		selectionFlag = false;
+		sc.reset();
 		return choice;
 	}
+
 
 	public void passOnTFTP() {
 

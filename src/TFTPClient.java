@@ -236,7 +236,7 @@ public class TFTPClient extends TFTPHost{
                 else if (x.contains("n")||x.contains("N")) {
                     this.verbose = true;
                 }
-                System.out.println("Would you like to turn on test mode?");
+                System.out.println("Would you like to turn on test mode? Y/N");
                 x = sc.next();
                 sc.reset();
                 if (x.contains("y")||x.contains("Y")) {
