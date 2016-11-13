@@ -109,6 +109,7 @@ public class TFTPHost {
 		resp[1] = 4;
 		byte[] data = new byte[516];
 		int port;
+		boolean bool = true;
 		try {
 			do {// until receiving a packet <516
 				receivePacket = new DatagramPacket(data, 516);
@@ -116,7 +117,9 @@ public class TFTPHost {
 				timeout = true;
 				while (timeout) {// wait to receive a data packet
 					timeout = false;
+					do{
 					try {
+						bool=false;
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							System.out.print("Invalid packet.");
@@ -124,12 +127,13 @@ public class TFTPHost {
 							System.exit(0);
 						}
 					} catch (SocketTimeoutException e) {// TODO Error handling
-														// TimeoutException
+						bool=true;//try and re-transmit								// TimeoutException
 						timeout = true;
 						if (shutdown) {
 							System.exit(0);
 						}
 					}
+					}while(bool);
 				}
 				port = receivePacket.getPort();
 
@@ -239,22 +243,26 @@ public class TFTPHost {
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
 					timeout = false;
+					boolean bool_1 = true;
+					do{
 					try {
 						// sendReceiveSocket.setSoTimeout(300);
 						// error packet number
 						sendReceiveSocket.receive(receivePacket);
-
+						bool_1= false;
 						if (!validate(receivePacket)) {
 							System.out.print("Invalid packet.");
 							printIncomingInfo(receivePacket, "ERROR", true);
 							System.exit(0);
 						}
 					} catch (SocketTimeoutException e) {
+						bool_1=true;
 						timeout = true;
 						if (shutdown) {
 							System.exit(0);
 						}
 					}
+					}while(bool_1);
 				}
 
 				printIncomingInfo(receivePacket, "Read", verbose);
