@@ -24,6 +24,9 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     //To check for error
     public boolean boolError = false;
 	
+    //error packet
+    public DatagramPacket sendErrorPacket;
+    
     // Server folder location
     public static final String DESKTOP = System.getProperty("user.home")+"/Desktop/Server/";
 
@@ -86,47 +89,67 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
             // otherwise, extract filename
             filename = new String(data,2,j-2);
         }
-	//no Error
-        //if(sendError() == false){
-		if(req!=Request.ERROR) { // check for mode
-		    // search for next all 0 byte
-		    for(k=j+1;k<len;k++) { 
-			if (data[k] == 0) break;
-		    }
-		    if (k==len) req=Request.ERROR; // didn't find a 0 byte
-		    if (k==j+1) req=Request.ERROR; // mode is 0 bytes long
-		    mode = new String(data,j,k-j-1);
-		}
-
-		if(k!=len-1) req=Request.ERROR; // other stuff at end of packet        
-
-		// Create a response.
-		if (req==Request.READ) { // for Read it's 0301
-		    response = readResp;
-		} else if (req==Request.WRITE) { // for Write it's 0400
-		    response = writeResp;//ACK00
-		} else { // it was invalid, just quit
-		    //throw new Exception("Not yet implemented");
-		}
-
-		printIncomingInfo(receivePacket,"Server",verbose);
-		writePort = receivePacket.getPort();
-		if (req==Request.WRITE) { //if a write request is received the server must send ACK00
-			sendPacket = new DatagramPacket(response, response.length,
-			receivePacket.getAddress(), receivePacket.getPort());	
-			    printOutgoingInfo(sendPacket,"Server",verbose);
-
-			    try {
-				sendReceiveSocket.send(sendPacket);
-			    } catch (IOException e) {
-				e.printStackTrace();
-				System.exit(1);
+        
+        //no Error
+        if(sendError() == false){
+        	System.out.println("Valid request as no error has been encountered.");	
+			if(req!=Request.ERROR) { // check for mode
+			    // search for next all 0 byte
+			    for(k=j+1;k<len;k++) { 
+				if (data[k] == 0) break;
 			    }
-
-			    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-			    System.out.println();
-		}
+			    if (k==len) req=Request.ERROR; // didn't find a 0 byte
+			    if (k==j+1) req=Request.ERROR; // mode is 0 bytes long
+			    mode = new String(data,j,k-j-1);
+			}
+	
+			if(k!=len-1) req=Request.ERROR; // other stuff at end of packet        
+	
+			// Create a response.
+			if (req==Request.READ) { // for Read it's 0301
+			    response = readResp;
+			} else if (req==Request.WRITE) { // for Write it's 0400
+			    response = writeResp;//ACK00
+			} else { // it was invalid, just quit
+			    //throw new Exception("Not yet implemented");
+			}
+	
+			printIncomingInfo(receivePacket,"Server",verbose);
+			writePort = receivePacket.getPort();
+			if (req==Request.WRITE) { //if a write request is received the server must send ACK00
+				sendPacket = new DatagramPacket(response, response.length,
+				receivePacket.getAddress(), receivePacket.getPort());	
+				    printOutgoingInfo(sendPacket,"Server",verbose);
+	
+				    try {
+					sendReceiveSocket.send(sendPacket);
+				    } catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				    }
+	
+				    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+				    System.out.println();
+			}
         }
+        
+        //There is an error
+        else{
+        	System.out.println("There is an error, encountered.");
+        	System.out.println("Sending packet.....");
+			//Send Error Packet
+    		
+        	printOutgoingInfo(sendPacket,"Server",verbose);
+       	    try {
+    	           sendReceiveSocket.send(sendPacket);
+    	        }catch (IOException d) {
+    	        	d.printStackTrace();
+    	            System.exit(1);
+    	    }
+    	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+    	    System.out.println();
+        }
+    }
 		
    
 
@@ -139,61 +162,25 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     	Path path = Paths.get(DESKTOP+"//"+filename);
     	
     	//Get data bytes of the packet recieved 
-    	byte[] data=receivePacket.getData();
+    	byte[] data = receivePacket.getData();
     	
     	//Write request
     	if(data[1] == 2) {
     		
     		if(Files.isWritable(path)){
     			error = createErrorByte((byte)2, "Cannot write " + filename + ". ACCESS VIOLATION: CODE: 0502");   			  			
-    			//Send Error Packet
-        		sendPacket = new DatagramPacket(error, error.length,
-                		receivePacket.getAddress(), receivePacket.getPort());
-            	printOutgoingInfo(sendPacket,"Server",verbose);
-           	    try {
-        	           sendReceiveSocket.send(sendPacket);
-        	        }catch (IOException d) {
-        	        	d.printStackTrace();
-        	            System.exit(1);
-        	    }
-        	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-        	    System.out.println();
     		}
 
     		else if(file.getAbsoluteFile().getFreeSpace() < receivePacket.getData().length){
     			error = createErrorByte((byte)3, "Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");   			  			
-    			//Send Error Packet
-        		sendPacket = new DatagramPacket(error, error.length,
-                		receivePacket.getAddress(), receivePacket.getPort());
-            	printOutgoingInfo(sendPacket,"Server",verbose);
-           	    try {
-        	           sendReceiveSocket.send(sendPacket);
-        	        }catch (IOException d) {
-        	        	d.printStackTrace();
-        	            System.exit(1);
-        	    }
-        	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-        	    System.out.println();
     		}
     		
     		else if(Files.exists(path)){
     			error = createErrorByte((byte)6, filename + "already exists. CODE: 0506");   			  			
-    			//Send Error Packet
-        		sendPacket = new DatagramPacket(error, error.length,
-                		receivePacket.getAddress(), receivePacket.getPort());
-            	printOutgoingInfo(sendPacket,"Server",verbose);
-           	    try {
-        	           sendReceiveSocket.send(sendPacket);
-        	        }catch (IOException d) {
-        	        	d.printStackTrace();
-        	            System.exit(1);
-        	    }
-        	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-        	    System.out.println();
     		}
     	    
     	    //Error exists
-    	    boolError = true;
+    	    return true;
     	}
     	
     	//Read request
@@ -201,42 +188,18 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     		
     		if(!file.exists()){
     			error = createErrorByte((byte)1, filename + "is not found! CODE: 0501");
-    			//Send Error Packet
-        		sendPacket = new DatagramPacket(error, error.length,receivePacket.getAddress(), receivePacket.getPort());
-            	
-        		printOutgoingInfo(sendPacket,"Server",verbose);
-           	    try {
-        	           sendReceiveSocket.send(sendPacket);
-        	        }catch (IOException d) {
-        	        	d.printStackTrace();
-        	            System.exit(1);
-        	    }
-        	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-        	    System.out.println();
     		}
     		
     		else if(!Files.isReadable(path)){
     			error = createErrorByte((byte)2, "Cannot read " + filename + ". ACCESS VIOLATION: CODE: 0502");   			
-    			//Send Error Packet
-        		sendPacket = new DatagramPacket(error, error.length,
-                		receivePacket.getAddress(), receivePacket.getPort());
-            	printOutgoingInfo(sendPacket,"Server",verbose);
-           	    try {
-        	           sendReceiveSocket.send(sendPacket);
-        	        }catch (IOException d) {
-        	        	d.printStackTrace();
-        	            System.exit(1);
-        	    }
-        	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-        	    System.out.println();
     		}
-    	    
+    	    //Create Error Packet
+    		sendPacket = new DatagramPacket(error, error.length,
+            		receivePacket.getAddress(), receivePacket.getPort());
     	    //Error exists
-    	    boolError = true;   
+    	    return true;   
     	}
-    	
-    	System.out.println("Valid request as no error has been encountered.");	
-    	return boolError;
+    	return false;
     }
 	    
     public void run() {

@@ -21,7 +21,6 @@ public class TFTPServer {
             ((TFTPServerListener) c).setStatus();
             c.interrupt();
             System.exit(0);
-            System.out.println("AAA");
         }
 	}
 }
