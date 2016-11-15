@@ -18,10 +18,7 @@ public class TFTPServer {
             System.out.println("Server is now shutting down.");
             sc.reset();
             sc.close();
-            ((TFTPServerListener) c).setStatus();
-            c.interrupt();
-            System.exit(0);
-
+           
         }
 	}
 }
