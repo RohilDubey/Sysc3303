@@ -15,7 +15,7 @@ public class TFTPHost {
 	protected byte[] error;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
 
-	protected static final String[] mtype = { "ERROR", "RRQ", "WRQ", "DATA", "ACK" };
+	protected static final String[] mtype = {"nothing", "RRQ", "WRQ", "DATA", "ACK", "ERROR" };
 
 	protected static Scanner sc;
 	protected boolean verbose;
@@ -86,14 +86,17 @@ public class TFTPHost {
 			int len = p.getLength();
 			System.out.println("Length: " + len);
 			System.out.println("Packet type: " + mtype[opcode]);
-			if (opcode < 3) {
+			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
-			} else {
-				System.out.println("Block number " + parseBlock(p.getData()));
-
-			}
-			if (opcode == 3) {
+			} 
+			
+			else if (opcode == 3){
 				System.out.println("Number of bytes: " + (len - 4));
+			}
+			
+			else if (opcode == 5) {
+				System.out.println("Sending an Error Message!");
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			System.out.println();
 		}
@@ -135,6 +138,7 @@ public class TFTPHost {
 					}
 					}while(bool);
 				}
+				
 				port = receivePacket.getPort();
 
 				printIncomingInfo(receivePacket, "Write", verbose);
@@ -336,8 +340,8 @@ public class TFTPHost {
 		// Get the bytes of the packet
 		e.getData();
 		// Get the error message received
-		byte[] rError = new byte[e.getData().length - 5];
-		System.arraycopy(e, 4, rError, 0, e.getData().length - 5);
+		byte[] rError = new byte[e.getData().length - 4];
+		System.arraycopy(e.getData(), 4, rError, 0, e.getData().length - 4);
 
 		// Get the error code received
 		byte errorCode = e.getData()[3];

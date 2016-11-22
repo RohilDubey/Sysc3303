@@ -131,7 +131,7 @@ public class TFTPClient extends TFTPHost{
                     
                     //Check if error Packet was received
                     if(parseErrorPacket(receivePacket) == true){
-                    	System.exit(1);
+                    	//System.exit(1);
                     }
                     
                     //Not an error Packet
