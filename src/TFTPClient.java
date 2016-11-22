@@ -92,11 +92,16 @@ public class TFTPClient extends TFTPHost{
 
         // Send the datagram packet to the server via the send/receive socket.
         try {
+        	sendReceiveSocket.setSoTimeout(3000);//set Timeout to 3000ms
             sendReceiveSocket.send(sendPacket);
+            
+        } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
+        	rePrompt();
+           
         } catch (IOException e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
+        	 e.printStackTrace();
+             System.exit(1);
+		}
 
         System.out.println("Client: Packet sent.");
 
@@ -206,6 +211,25 @@ public class TFTPClient extends TFTPHost{
         result[lf+3+lm] = 0;
 
         return result;
+    }
+    public void rePrompt(){
+    	String x;
+        System.out.println("Would you like to re-transmit Y/N?");
+        x = sc.next();
+        if (x.contains("Y")||x.contains("y")) {
+            sc.reset();
+            TFTPClient c = new TFTPClient();
+            c.promptUser();
+        }
+        else if(x.contains("N")|| x.contains("n")){
+        	sc.reset();
+        	System.out.println("The system is closing");
+        	System.exit(1);
+        }
+        else{
+        	System.out.println("Invalid character detected");
+        	rePrompt();
+        }
     }
 
     public void promptUser(){

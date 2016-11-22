@@ -123,6 +123,7 @@ public class TFTPHost {
 					do{
 					try {
 						bool=false;
+						sendReceiveSocket.setSoTimeout(3000);
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							System.out.print("Invalid packet.");
@@ -130,11 +131,7 @@ public class TFTPHost {
 							System.exit(0);
 						}
 					} catch (SocketTimeoutException e) {// TODO Error handling
-						bool=true;//try and re-transmit								// TimeoutException
-						timeout = true;
-						if (shutdown) {
-							System.exit(0);
-						}
+						rePrompt();
 					}
 					}while(bool);
 				}
@@ -380,4 +377,27 @@ public class TFTPHost {
 		}
 		return false;
 	}// parseErrorPacket() ends
+	
+public void rePrompt(){
+	    	String x;
+	        System.out.println("Would you like to re-transmit Y/N?");
+	        x = sc.next();
+	        if (x.contains("Y")||x.contains("y")) {
+	            sc.reset();
+	            TFTPClient c = new TFTPClient();
+	            c.promptUser();
+	        }
+	        else if(x.contains("N")|| x.contains("n")){
+	        	sc.reset();
+	        	System.out.println("The system is closing");
+	        	System.exit(1);
+	        }
+	        else{
+	        	System.out.println("Invalid character detected");
+	        	rePrompt();
+	        }
+	    }
+	
+	
+	
 }
