@@ -1,4 +1,5 @@
 
+
 //This class is the beginnings of an error simulator for a simple TFTP server 
 //based on UDP/IP. The simulator receives a read or write packet from a client and
 //passes it on to the server.  Upon receiving a response, it passes it on to the 
@@ -18,11 +19,12 @@ public class TFTPSim extends TFTPHost {
 
 	private DatagramSocket receiveSocket, sendSocket, sendReceiveSocket;
 	private DatagramPacket checkPacket;
-	boolean finalMessage;
-	String packet;
-	int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
-	boolean transferStatus, readTransfer, firstTransfer, lengthCheck, clientOrServer, selectionFlag;
-	Request req; // READ, WRITE or ERROR
+	private boolean finalMessage;
+	private String packet;
+	private int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
+	private boolean transferStatus, readTransfer, firstTransfer, lengthCheck;
+	private Request req; // READ, WRITE or ERROR
+	private boolean clientOrServer,selectionFlag;
 
 	// responses for valid requests
 	public static final int MAXLENGTH = 516;
@@ -127,12 +129,13 @@ public class TFTPSim extends TFTPHost {
 		return readTransfer;
 	}
 
-	public String selectPacket() {
+		public String selectPacket() {
 		Scanner sc = new Scanner(System.in);
 		readTransfer = checkRequest();
-		String choice = sc.next();
+		String choice;
 		do {
 			System.out.println("Would you like to act on the [S]erver or [C]lient?");
+			choice = sc.next();
 			if (choice.contains("S") || choice.contains("s")) {
 				clientOrServer = true;
 				selectionFlag = true;
@@ -142,6 +145,7 @@ public class TFTPSim extends TFTPHost {
 			}
 		} while (!selectionFlag);
 		selectionFlag = false;
+		sc.reset();
 		System.out.println("Which packet type would you like to act on?");
 		do {
 			if (readTransfer) {
@@ -151,17 +155,23 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("[1]: WRQ");
 				System.out.println("[2]: DATA");
 			}
+			choice = sc.next();
 			if ((!choice.contains("1")) && (!choice.contains("2"))) {
 				System.out.println("Choice is invalid, please choose again");
-				choice = selectPacket();
+				selectionFlag = false;
+			}
+			if ((choice.contains("1")) && (choice.contains("2"))) {
+				System.out.println("Choice is invalid, please choose again");
 				selectionFlag = false;
 			} else {
 				selectionFlag = true;
 			}
 		} while (!selectionFlag);
 		selectionFlag = false;
+		sc.reset();
 		return choice;
 	}
+
 
 	public void passOnTFTP() {
 

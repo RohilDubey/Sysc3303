@@ -15,10 +15,10 @@ public class TFTPHost {
 	protected byte[] error;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
 
-	public static final String[] mtype = { "ERROR", "RRQ", "WRQ", "DATA", "ACK" };
+	protected static final String[] mtype = {"nothing", "RRQ", "WRQ", "DATA", "ACK", "ERROR" };
 
-	static Scanner sc;
-	boolean verbose;
+	protected static Scanner sc;
+	protected boolean verbose;
 
 	public void setShutdown() {
 		shutdown = true;
@@ -53,7 +53,7 @@ public class TFTPHost {
 		return data.split("\0")[1].substring(1);
 	}
 
-	// prints relevent information about an incoming packet
+	// prints relavent information about an incoming packet
 	protected void printIncomingInfo(DatagramPacket p, String name, boolean verbose) {
 		if (verbose) {
 			int opcode = p.getData()[1];
@@ -63,14 +63,15 @@ public class TFTPHost {
 			int len = p.getLength();
 			System.out.println("Length: " + len);
 			System.out.println("Packet type: " + mtype[opcode]);
-			if (opcode < 3) {
+			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
-			} else {
-				System.out.println("Block number " + parseBlock(p.getData()));
-
 			}
-			if (opcode == 3) {
+			else if (opcode == 3) {
 				System.out.println("Number of bytes: " + (len - 4));
+			}
+			else if(opcode == 5) {
+				System.out.println("Recieving an Error Message!");
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			System.out.println();
 		}
@@ -86,14 +87,17 @@ public class TFTPHost {
 			int len = p.getLength();
 			System.out.println("Length: " + len);
 			System.out.println("Packet type: " + mtype[opcode]);
-			if (opcode < 3) {
+			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
-			} else {
-				System.out.println("Block number " + parseBlock(p.getData()));
-
-			}
-			if (opcode == 3) {
+			} 
+			
+			else if (opcode == 3){
 				System.out.println("Number of bytes: " + (len - 4));
+			}
+			
+			else if (opcode == 5) {
+				System.out.println("Sending an Error Message!");
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			System.out.println();
 		}
@@ -109,6 +113,7 @@ public class TFTPHost {
 		resp[1] = 4;
 		byte[] data = new byte[516];
 		int port;
+		boolean bool = true;
 		try {
 			do {// until receiving a packet <516
 				receivePacket = new DatagramPacket(data, 516);
@@ -116,20 +121,29 @@ public class TFTPHost {
 				timeout = true;
 				while (timeout) {// wait to receive a data packet
 					timeout = false;
+					do{
 					try {
+						bool=false;
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
-							System.out.print("Invalid packet.");
-							printIncomingInfo(receivePacket, "ERROR", verbose);
-							System.exit(0);
+							if(parseErrorPacket(receivePacket) == true){
+								System.out.println("Invalid packet.");
+								printIncomingInfo(receivePacket, "ERROR", verbose);
+								System.exit(0);
+							}
+							
+							else{
+								
+							}
 						}
 					} catch (SocketTimeoutException e) {// TODO Error handling
-														// TimeoutException
+						bool=true;//try and re-transmit								// TimeoutException
 						timeout = true;
 						if (shutdown) {
 							System.exit(0);
 						}
 					}
+					}while(bool);
 				}
 				port = receivePacket.getPort();
 
@@ -239,22 +253,26 @@ public class TFTPHost {
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
 					timeout = false;
+					boolean bool_1 = true;
+					do{
 					try {
 						// sendReceiveSocket.setSoTimeout(300);
 						// error packet number
 						sendReceiveSocket.receive(receivePacket);
-
+						bool_1= false;
 						if (!validate(receivePacket)) {
 							System.out.print("Invalid packet.");
 							printIncomingInfo(receivePacket, "ERROR", true);
 							System.exit(0);
 						}
 					} catch (SocketTimeoutException e) {
+						bool_1=true;
 						timeout = true;
 						if (shutdown) {
 							System.exit(0);
 						}
 					}
+					}while(bool_1);
 				}
 
 				printIncomingInfo(receivePacket, "Read", verbose);
@@ -328,8 +346,10 @@ public class TFTPHost {
 		// Get the bytes of the packet
 		e.getData();
 		// Get the error message received
-		byte[] rError = new byte[e.getData().length - 5];
-		System.arraycopy(e, 4, rError, 0, e.getData().length - 5);
+		System.out.println(e.getData().length - 4);
+		byte[] rError = new byte[e.getData().length - 4];
+		
+		System.arraycopy(e.getData(), 4, rError, 0, e.getData().length - 4);
 
 		// Get the error code received
 		byte errorCode = e.getData()[3];
