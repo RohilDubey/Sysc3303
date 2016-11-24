@@ -123,7 +123,7 @@ public class TFTPHost {
 					do{
 					try {
 						bool=false;
-						sendReceiveSocket.setSoTimeout(3000);
+						sendReceiveSocket.setSoTimeout(10000);
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							System.out.print("Invalid packet.");
@@ -154,7 +154,7 @@ public class TFTPHost {
 	                }
 				
 				try {
-					sendReceiveSocket.setSoTimeout(5000);
+					sendReceiveSocket.setSoTimeout(10000);
 					sendReceiveSocket.send(sendPacket);
 					System.out.print(sendPacket.getData());
 				} catch (IOException e) {// TODO Error handling this could cause
@@ -244,27 +244,21 @@ public class TFTPHost {
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
 					timeout = false;
-					boolean bool_1 = true;
-					do{
+					
 					try {
-						// sendReceiveSocket.setSoTimeout(300);
-						// error packet number
+						sendReceiveSocket.setSoTimeout(10000);
 						sendReceiveSocket.receive(receivePacket);
-						bool_1= false;
+						
 						if (!validate(receivePacket)) {
 							System.out.print("Invalid packet.");
 							printIncomingInfo(receivePacket, "ERROR", true);
 							System.exit(0);
 						}
 					} catch (SocketTimeoutException e) {
-						bool_1=true;
-						timeout = true;
-						if (shutdown) {
-							System.exit(0);
-						}
+						rePrompt();
 					}
-					}while(bool_1);
-				}
+				
+			
 
 				printIncomingInfo(receivePacket, "Read", verbose);
 
@@ -278,7 +272,8 @@ public class TFTPHost {
 			}
 			System.out.println("Read : File transfer ends");
 
-		} catch (IOException e) {
+		}
+		}catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}

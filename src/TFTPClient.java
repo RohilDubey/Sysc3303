@@ -248,6 +248,7 @@ public class TFTPClient extends TFTPHost{
             }
             else if (x.contains("q")||x.contains("Q")) {
                 this.sendReceiveSocket.close();
+                System.out.println("Client is Quitting");
                 System.exit(0);
             }
             else if (x.contains("o")||x.contains("O")) {
