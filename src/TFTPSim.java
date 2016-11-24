@@ -69,6 +69,7 @@ public class TFTPSim extends TFTPHost {
 			if (choice.contains("0")) {// normal operation
 				System.out.println("Normal Operation Selected");
 				loop = false;
+				debugChoice = 0;
 				actBlock = -1; // Set so none of the if statements go off
 				return; // Just exit out of method in case of normal operation
 			} else if (choice.contains("1")) {// lose packet
@@ -356,7 +357,77 @@ public class TFTPSim extends TFTPHost {
 		} // end of loop
 		
 	}
+	
+	public void printAndSend(){
 		
+		printOutgoingInfo(sendPacket, "Simulator", verbose);
+		try {
+			sendReceiveSocket.send(sendPacket);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+	}
+		
+	public void pass(){//basic pass
+		byte[] data;
+		for(;;){
+		transferStatus = false;
+		finalMessage = false;
+		firstTransfer = false;
+		lengthCheck = false;
+		
+		while ((lengthCheck && !finalMessage) || (firstTransfer && !readTransfer)){
+		data = new byte[516];
+		receivePacket = new DatagramPacket(data, data.length);
+		System.out.println("Simulator: Waiting for packet.");
+		try {
+			receiveSocket.receive(receivePacket);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
+		printIncomingInfo(receivePacket, "Simulator", verbose);
+		
+		len = receivePacket.getLength();
+		clientPort = receivePacket.getPort();
+		sendPacket = new DatagramPacket(data, len, receivePacket.getAddress(), serverPort);
+		
+		len = sendPacket.getLength();
+		if (!readTransfer) {
+			checkPacket = sendPacket;
+		}
+		
+		if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { // For request Debug only. 
+			
+			printAndSend();
+			firstTransfer = false;
+		}
+		
+		else if ((actBlock == parseBlock(sendPacket.getData()))) { // check
+			printAndSend();
+		}
+			
+		else if (!finalMessage && lengthCheck) {
+				finalMessage = true;
+			}
+		else {
+			printAndSend();
+		}		
+		
+		System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
+		System.out.println();
+		transferStatus = true;
+		if (checkPacket.getLength() == MAXLENGTH) {
+			lengthCheck = true;
+		}
+		}
+	     transferStatus = false;
+	     sendSocket.close();
+		}
+	}
 	
 
 	public void passOnTFTP() {
@@ -633,8 +704,16 @@ public class TFTPSim extends TFTPHost {
 	}
 	public void filter(){
 		if(debugChoice == 2){
+			System.out.println();
 			System.out.println("------Delaying Packet------");
+			System.out.println();
 			delayPacketPassOnTFTP();			
+		}
+		else if(debugChoice ==0){
+			System.out.println();
+			System.out.println("------Normal Operation------");
+			System.out.println();
+			pass();
 		}
 		else{
 			passOnTFTP();
