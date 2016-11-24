@@ -236,9 +236,10 @@ public class TFTPSim extends TFTPHost {
 					checkPacket = sendPacket;
 				}
 				// Debug options for Client
-				if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { // For request Debug only. 
+				if ((actBlock == 0 && (firstTransfer))) { //TODO && !clientOrServer???
 					
 						try {
+							System.out.println("Waiting for:" + delay+" ms.");
 							Thread.sleep(delay);
 						} catch (InterruptedException e) {}							
 						
@@ -255,8 +256,9 @@ public class TFTPSim extends TFTPHost {
 					firstTransfer = false;//No longer the 1st transfer
 				}
 
-				else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { 
+				else if ((actBlock == parseBlock(sendPacket.getData()))) { 
 						try {
+							System.out.println("Waiting for:" + delay+" ms.");
 							Thread.sleep(delay);
 						} catch (InterruptedException e) {}
 						
@@ -269,6 +271,18 @@ public class TFTPSim extends TFTPHost {
 						}
 
 					} 
+				else if (!(actBlock == parseBlock(sendPacket.getData()))&&!finalMessage) {
+					printOutgoingInfo(sendPacket, "Simulator", verbose);
+					try {
+						sendReceiveSocket.send(sendPacket);
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}
+
+					
+					
+				}
 				else if (!finalMessage && lengthCheck) {
 						finalMessage = true;
 					}
@@ -276,6 +290,8 @@ public class TFTPSim extends TFTPHost {
 
 				// Construct a DatagramPacket for receiving packets up
 				// to 100 bytes long (the length of the byte array)
+				
+				
 				else if (!finalMessage) {
 					data = new byte[516];
 					receivePacket = new DatagramPacket(data, data.length);
@@ -292,8 +308,7 @@ public class TFTPSim extends TFTPHost {
 					printIncomingInfo(receivePacket, "Simulator", verbose);
 					len = receivePacket.getLength();
 
-					sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(),
-							clientPort);
+					sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(),clientPort);
 
 					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					len = sendPacket.getLength();
@@ -316,6 +331,16 @@ public class TFTPSim extends TFTPHost {
 					}
 					// Debug options for Server
 					}//end final msg if
+				else {
+					printOutgoingInfo(sendPacket, "Simulator", verbose);
+					try {
+						sendSocket.send(sendPacket);
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}
+				}
+				
 				
 				System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
 				System.out.println();
@@ -608,7 +633,7 @@ public class TFTPSim extends TFTPHost {
 	}
 	public void filter(){
 		if(debugChoice == 2){
-			System.out.println("Delaying Packet");
+			System.out.println("------Delaying Packet------");
 			delayPacketPassOnTFTP();			
 		}
 		else{
