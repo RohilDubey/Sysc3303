@@ -92,12 +92,10 @@ public class TFTPClient extends TFTPHost{
 
         // Send the datagram packet to the server via the send/receive socket.
         try {
-        	sendReceiveSocket.setSoTimeout(3000);//set Timeout to 3000ms
+        	
             sendReceiveSocket.send(sendPacket);
             
-        } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
-        	rePrompt();
-           
+       
         } catch (IOException e) {
         	 e.printStackTrace();
              System.exit(1);
@@ -122,9 +120,12 @@ public class TFTPClient extends TFTPHost{
                     while (timeout) {//wait to receive the ACK00
                         timeout = false;
                         try {
-                        	//sendReceiveSocket.setSoTimeout(10000);
+                        	sendReceiveSocket.setSoTimeout(10000);
                             sendReceiveSocket.receive(receivePacket);
-                        } catch (SocketTimeoutException e) {
+                         
+                        } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
+                        	rePrompt();
+                        	
                             timeout = true;
                             if (shutdown) {
                                 System.exit(0);
@@ -222,9 +223,21 @@ public class TFTPClient extends TFTPHost{
             c.promptUser();
         }
         else if(x.contains("N")|| x.contains("n")){
-        	sc.reset();
-        	System.out.println("The system is closing");
-        	System.exit(1);
+        	System.out.println("Would you like to keep waiting? Y/N?");
+        	x = sc.next();
+        	if (x.contains("N")||x.contains("n")) {
+        		sc.reset();
+            	System.out.println("The system is closing");
+            	System.exit(1);
+            	 
+            }
+        	else if(x.contains("Y") || x.contains("y")){
+        		System.out.println("waiting...");
+        	}
+        	else{
+        	System.out.println("Invalid character detected");
+        	rePrompt();
+        	}
         }
         else{
         	System.out.println("Invalid character detected");

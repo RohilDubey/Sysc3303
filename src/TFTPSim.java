@@ -199,7 +199,7 @@ public class TFTPSim extends TFTPHost {
 		return choice;
 	}
 		
-	public void delayPacketPassOnTFTP(){
+	public void delayPacket(){
 	
 		
 		byte[] data;
@@ -713,9 +713,7 @@ public class TFTPSim extends TFTPHost {
 
 	}
 	
-	
-	
-	public void pass(){//basic pass
+	public void passPacket(){//basic pass
 		byte[] data;
 		for (;;) { // loop forever			
 			
@@ -888,7 +886,7 @@ public class TFTPSim extends TFTPHost {
 
 	}
 		
-	public void passOnTFTP() {
+	public void passOnTFTP() {//TODO this is obsolete, ill leave it as a backup.
 
 		byte[] data;
 		for (;;) { // loop forever
@@ -1169,7 +1167,7 @@ public class TFTPSim extends TFTPHost {
 			System.out.println();
 			System.out.println("------Normal Operation------");
 			System.out.println();
-			pass();
+			passPacket();
 		}
 		else if(debugChoice ==1){
 			System.out.println();
@@ -1181,7 +1179,7 @@ public class TFTPSim extends TFTPHost {
 			System.out.println();
 			System.out.println("------Delaying Packet------");
 			System.out.println();
-			delayPacketPassOnTFTP();			
+			delayPacket();			
 		}
 		else if(debugChoice==3){
 			System.out.println();
