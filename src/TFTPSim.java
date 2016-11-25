@@ -22,10 +22,11 @@ public class TFTPSim extends TFTPHost {
 	private boolean finalMessage;
 	private String packet;
 	private int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay;
-	private boolean transferStatus, readTransfer, firstTransfer, lengthCheck;
+	private boolean transferStatus, readTransfer, firstTransfer, lengthCheck,promptCheck;
 	private Request req; // READ, WRITE or ERROR
 	private boolean clientOrServer,selectionFlag;
 	private byte[] data;
+	
 
 	// responses for valid requests
 	public static final int MAXLENGTH = 516;
@@ -69,6 +70,7 @@ public class TFTPSim extends TFTPHost {
 			if (choice.contains("0")) {// normal operation
 				System.out.println("Normal Operation Selected");
 				loop = false;
+				debugChoice = 0;
 				actBlock = -1; // Set so none of the if statements go off
 				return; // Just exit out of method in case of normal operation
 			} else if (choice.contains("1")) {// lose packet
@@ -149,7 +151,7 @@ public class TFTPSim extends TFTPHost {
 		return readTransfer;
 	}
 
-		public String selectPacket() {
+	public String selectPacket() {
 		Scanner sc = new Scanner(System.in);
 		readTransfer = checkRequest();
 		String choice;
@@ -201,65 +203,70 @@ public class TFTPSim extends TFTPHost {
 	
 		
 		byte[] data;
-		for (;;) { // loop forever
+		for (;;) { // loop forever			
+			
 			transferStatus = false;
 			finalMessage = false;
 			firstTransfer = false;
 			lengthCheck = false;
+						
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
-				// Block until a datagram packet is received from receiveSocket.
 				System.out.println("Simulator: Waiting for packet.");
+				
 				try {
-					receiveSocket.receive(receivePacket);
+					receiveSocket.receive(receivePacket);//wait untill you receive a packet
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
-				if (!transferStatus) {
-					blockSelection();
-					 // Prior to printing information, ask what
-					// error debug
-					// the user would like to do
+				
+				
+				
+				if (!transferStatus && this.promptCheck) {//if already prompted 
+					blockSelection(); 
 					firstTransfer = true;
 				}
+				else if(!promptCheck){
+					this.promptCheck =true;
+					simPrompt();
+					filter();
+				}
 				
-				printIncomingInfo(receivePacket, "Simulator", verbose);
+				printIncomingInfo(receivePacket, "Simulator", verbose);//print the received packet details
 				len = receivePacket.getLength();
 				clientPort = receivePacket.getPort();
 				sendPacket = new DatagramPacket(data, len, receivePacket.getAddress(), serverPort);
 				len = sendPacket.getLength();
 				// Send the datagram packet to the server via the send/receive
 				// socket.
-				if (!readTransfer) {
+				if (readTransfer==false) {//if write
 					checkPacket = sendPacket;
 				}
 				// Debug options for Client
-				if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { // For request Debug only. 
-					
-						try {
-							Thread.sleep(delay);
-						} catch (InterruptedException e) {}							
-						
-						printOutgoingInfo(sendPacket, "Simulator", verbose);
-						
+				if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { //1st block for client request						
+					try {
+						System.out.println();
+						System.out.println("Delaying for: "+delay+"ms.");
+						System.out.println();
+						Thread.sleep(delay);
+					} catch (InterruptedException e) {
+					}	
+					printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
 							sendReceiveSocket.send(sendPacket);
 						} catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
 						}
-
-					
-					firstTransfer = false;//No longer the 1st transfer
+					firstTransfer = false;
 				}
 
-				else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { 
-						try {
-							Thread.sleep(delay);
-						} catch (InterruptedException e) {}
-						
+				else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { //nth block of client request
+						System.out.println();
+						System.out.println("Delaying for: "+delay+"ms.");
+						System.out.println();
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
 							sendReceiveSocket.send(sendPacket);
@@ -268,55 +275,103 @@ public class TFTPSim extends TFTPHost {
 							System.exit(1);
 						}
 
-					} 
-				else if (!finalMessage && lengthCheck) {
+					 
+					if (!finalMessage && lengthCheck) {//check if this was the last block 
 						finalMessage = true;
 					}
-				
+				}
+				else {//this wasn't the act block
+					printOutgoingInfo(sendPacket, "Simulator", verbose);
+					try {
+						sendReceiveSocket.send(sendPacket);
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}
+				}
 
 				// Construct a DatagramPacket for receiving packets up
 				// to 100 bytes long (the length of the byte array)
-				else if (!finalMessage) {
+				if (!finalMessage) {
 					data = new byte[516];
 					receivePacket = new DatagramPacket(data, data.length);
 					System.out.println("Simulator: Waiting for packet.");
 					try {
-						// Block until a datagram is received via
-						// sendReceiveSocket.
 						sendReceiveSocket.receive(receivePacket);
 					} catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
 					}
+					
 					serverPort = receivePacket.getPort();
 					printIncomingInfo(receivePacket, "Simulator", verbose);
 					len = receivePacket.getLength();
-
-					sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(),
-							clientPort);
-
+					sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(),clientPort);
 					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					len = sendPacket.getLength();
 
 					// Send the datagram packet to the client via a new socket.
 
+					
+						/*
+						 * Construct a new datagram socket and bind it to any port
+						 * on the local host machine. This socket will be used
+						 * to send UDP Datagram packets.
+						 *  
+						 */
 					try {
-						// Construct a new datagram socket and bind it to any
-						// port
-						// on the local host machine. This socket will be used
-						// to
-						// send UDP Datagram packets.
 						sendSocket = new DatagramSocket();
 					} catch (SocketException se) {
 						se.printStackTrace();
 						System.exit(1);
 					}
-					if (readTransfer) {
+					if (readTransfer) {//if read
 						checkPacket = sendPacket;
 					}
 					// Debug options for Server
-					}//end final msg if
-				
+					if ((actBlock == 0 && (firstTransfer) && clientOrServer)) { //1st block for serverOperations
+							System.out.println();
+							System.out.println("Delaying for: "+delay+"ms.");
+							System.out.println();
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							try {
+								sendReceiveSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+							
+						firstTransfer = false;
+					}
+
+					else if ((actBlock == parseBlock(sendPacket.getData()) && clientOrServer)) { //nth block of server side operations
+							System.out.println();
+							System.out.println("Delaying for: "+delay+"ms.");
+							System.out.println();
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							try {
+								sendSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+
+						
+						if (!finalMessage && lengthCheck) {
+							finalMessage = true;
+						}
+					} 
+					else {
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
+						try {
+							sendSocket.send(sendPacket);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+					}
+				}
+
 				System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
 				System.out.println();
 				transferStatus = true;
@@ -329,9 +384,187 @@ public class TFTPSim extends TFTPHost {
 			transferStatus = false;
 			sendSocket.close();
 		} // end of loop
+	}
+	
+	
 		
+	
+		
+	public void pass(){//basic pass
+		byte[] data;
+		for (;;) { // loop forever			
+			
+			transferStatus = false;
+			finalMessage = false;
+			firstTransfer = false;
+			lengthCheck = false;
+						
+			do {
+				data = new byte[516];
+				receivePacket = new DatagramPacket(data, data.length);
+				System.out.println("Simulator: Waiting for packet.");
+				
+				try {
+					receiveSocket.receive(receivePacket);//wait untill you receive a packet
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
+				
+				
+				
+				if (!transferStatus && promptCheck) {//if already prompted 
+					blockSelection(); 
+					firstTransfer = true;
+				}
+				else if(!promptCheck){
+					this.promptCheck =true;
+					this.simPrompt();
+					this.filter();
+				}
+				
+				printIncomingInfo(receivePacket, "Simulator", verbose);//print the received packet details
+				len = receivePacket.getLength();
+				clientPort = receivePacket.getPort();
+				sendPacket = new DatagramPacket(data, len, receivePacket.getAddress(), serverPort);
+				len = sendPacket.getLength();
+				// Send the datagram packet to the server via the send/receive
+				// socket.
+				if (readTransfer==false) {//if write
+					checkPacket = sendPacket;
+				}
+				// Debug options for Client
+				if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { //1st block for client request						
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
+						try {
+							sendReceiveSocket.send(sendPacket);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+					firstTransfer = false;
+				}
+
+				else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { //nth block of client request
+					
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
+						try {
+							sendReceiveSocket.send(sendPacket);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+
+					 
+					if (!finalMessage && lengthCheck) {//check if this was the last block 
+						finalMessage = true;
+					}
+				}
+				else {//this wasn't the act block
+					printOutgoingInfo(sendPacket, "Simulator", verbose);
+					try {
+						sendReceiveSocket.send(sendPacket);
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}
+				}
+
+				// Construct a DatagramPacket for receiving packets up
+				// to 100 bytes long (the length of the byte array)
+				if (!finalMessage) {
+					data = new byte[516];
+					receivePacket = new DatagramPacket(data, data.length);
+					System.out.println("Simulator: Waiting for packet.");
+					try {
+						sendReceiveSocket.receive(receivePacket);
+					} catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}
+					
+					serverPort = receivePacket.getPort();
+					printIncomingInfo(receivePacket, "Simulator", verbose);
+					len = receivePacket.getLength();
+					sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(),clientPort);
+					printOutgoingInfo(sendPacket, "Simulator", verbose);
+					len = sendPacket.getLength();
+
+					// Send the datagram packet to the client via a new socket.
+
+					
+						/*
+						 * Construct a new datagram socket and bind it to any port
+						 * on the local host machine. This socket will be used
+						 * to send UDP Datagram packets.
+						 *  
+						 */
+					try {
+						sendSocket = new DatagramSocket();
+					} catch (SocketException se) {
+						se.printStackTrace();
+						System.exit(1);
+					}
+					if (readTransfer) {//if read
+						checkPacket = sendPacket;
+					}
+					// Debug options for Server
+					if ((actBlock == 0 && (firstTransfer) && clientOrServer)) { //1st block for serverOperations
+						
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							try {
+								sendReceiveSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+							
+						firstTransfer = false;
+					}
+
+					else if ((actBlock == parseBlock(sendPacket.getData()) && clientOrServer)) { //nth block of server side operations
+						 
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
+							try {
+								sendSocket.send(sendPacket);
+							} catch (IOException e) {
+								e.printStackTrace();
+								System.exit(1);
+							}
+
+						
+						if (!finalMessage && lengthCheck) {
+							finalMessage = true;
+						}
+					} 
+					else {
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
+						try {
+							sendSocket.send(sendPacket);
+						} catch (IOException e) {
+							e.printStackTrace();
+							System.exit(1);
+						}
+					}
+				}
+
+				System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
+				System.out.println();
+				transferStatus = true;
+				if (checkPacket.getLength() == MAXLENGTH) {
+					lengthCheck = true;
+				}
+			} while ((lengthCheck && !finalMessage) || (firstTransfer && !readTransfer));
+			//System.out.println("error3");
+			// We're finished with this socket, so close it.
+			transferStatus = false;
+			sendSocket.close();
+		} // end of loop
+
 	}
 		
+		
+	
 	
 
 	public void passOnTFTP() {
@@ -608,8 +841,16 @@ public class TFTPSim extends TFTPHost {
 	}
 	public void filter(){
 		if(debugChoice == 2){
-			System.out.println("Delaying Packet");
+			System.out.println();
+			System.out.println("------Delaying Packet------");
+			System.out.println();
 			delayPacketPassOnTFTP();			
+		}
+		else if(debugChoice ==0){
+			System.out.println();
+			System.out.println("------Normal Operation------");
+			System.out.println();
+			pass();
 		}
 		else{
 			passOnTFTP();
@@ -619,9 +860,10 @@ public class TFTPSim extends TFTPHost {
 
 	public static void main(String args[]) {
 		TFTPSim s = new TFTPSim();
+		s.promptCheck=true;
 		s.simPrompt();
 		s.filter();
-		
 		sc.close();
+		
 	}
 }
