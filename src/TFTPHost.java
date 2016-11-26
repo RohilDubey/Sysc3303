@@ -11,7 +11,7 @@ import java.util.Scanner;
 public class TFTPHost {
 
 	protected boolean shutdown;
-	protected boolean timeout;
+	protected boolean timeout,clientPrompt;
 	protected byte[] error;
 	protected String message;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
@@ -30,6 +30,9 @@ public class TFTPHost {
 	
 	protected void setShutdown() {
 		shutdown = true;
+	}
+	protected void setClientPrompt(boolean t){
+		clientPrompt=t;
 	}
 
 	// returns the packet number
@@ -124,7 +127,9 @@ public class TFTPHost {
 					do{
 					try {
 						bool=false;
-						sendReceiveSocket.setSoTimeout(10000);
+						if(clientPrompt){
+						sendReceiveSocket.setSoTimeout(25000);
+						}
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
@@ -134,7 +139,7 @@ public class TFTPHost {
 						}
 					} 
 					catch (SocketTimeoutException e) {// TODO Error handling
-						rePrompt();
+						rePrompt();						
 					}
 					}while(bool);
 				}
@@ -157,7 +162,7 @@ public class TFTPHost {
 	                }
 				
 				try {
-					sendReceiveSocket.setSoTimeout(10000);
+					sendReceiveSocket.setSoTimeout(25000);
 					sendReceiveSocket.send(sendPacket);
 					System.out.print(sendPacket.getData());
 				} 
@@ -252,7 +257,9 @@ public class TFTPHost {
 					timeout = false;
 					
 					try {
-						sendReceiveSocket.setSoTimeout(10000);
+						if(clientPrompt){
+						sendReceiveSocket.setSoTimeout(25000);
+						}
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
@@ -262,7 +269,7 @@ public class TFTPHost {
 						}
 					} 
 					catch (SocketTimeoutException e) {
-						rePrompt();
+							rePrompt();
 					}
 					printIncomingInfo(receivePacket, "Read", verbose);
 	
@@ -432,16 +439,17 @@ public class TFTPHost {
 	}// checkPort() ends
 	
 	protected void rePrompt(){
+			Scanner s = new Scanner(System.in);
 	    	String x;
 	        System.out.println("Would you like to re-transmit Y/N?");
-	        x = sc.next();
+	        x = s.next();
 	        if (x.contains("Y")||x.contains("y")) {
-	            sc.reset();
+	            s.reset();
 	            TFTPClient c = new TFTPClient();
 	            c.promptUser();
 	        }
 	        else if(x.contains("N")|| x.contains("n")){
-	        	sc.reset();
+	        	s.reset();
 	        	System.out.println("The system is closing");
 	        	System.exit(1);
 	        }

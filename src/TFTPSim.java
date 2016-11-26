@@ -199,12 +199,14 @@ public class TFTPSim extends TFTPHost {
 	}
 		
 	public void delayPacket(){
+		
+		transferStatus = false;
+		finalMessage = false;
+		firstTransfer = false;
+		lengthCheck = false;	
 		byte[] data;
 		for (;;) { // loop forever			
-			transferStatus = false;
-			finalMessage = false;
-			firstTransfer = false;
-			lengthCheck = false;		
+				
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
@@ -371,20 +373,20 @@ public class TFTPSim extends TFTPHost {
 			} while ((lengthCheck && !finalMessage) || (firstTransfer && !readTransfer));
 			//System.out.println("error3");
 			// We're finished with this socket, so close it.
-			transferStatus = false;
+			transferStatus = true;
 			sendSocket.close();
 		} // end of loop
 	}
 	
 	public void losePacket(){
-		
+		transferStatus = false;
+		finalMessage = false;
+		firstTransfer = false;
+		lengthCheck = false;
 		byte[] data;
 		for (;;) { // loop forever			
 			
-			transferStatus = false;
-			finalMessage = false;
-			firstTransfer = false;
-			lengthCheck = false;
+			
 						
 			do {
 				data = new byte[516];
@@ -515,7 +517,7 @@ public class TFTPSim extends TFTPHost {
 			} while ((lengthCheck && !finalMessage) || (firstTransfer && !readTransfer));
 			//System.out.println("error3");
 			// We're finished with this socket, so close it.
-			transferStatus = false;
+			transferStatus = true;
 			sendSocket.close();
 		} // end of loop
 
@@ -526,15 +528,16 @@ public class TFTPSim extends TFTPHost {
 	
 	public void duplicatePacket(){
 		
-		
-		byte[] data;
-		for (;;) { // loop forever			
-			
 			transferStatus = false;
 			finalMessage = false;
 			firstTransfer = false;
 			lengthCheck = false;
 						
+		
+		byte[] data;
+		for (;;) { // loop forever			
+			
+			
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
@@ -697,20 +700,21 @@ public class TFTPSim extends TFTPHost {
 			} while ((lengthCheck && !finalMessage) || (firstTransfer && !readTransfer));
 			//System.out.println("error3");
 			// We're finished with this socket, so close it.
-			transferStatus = false;
+			transferStatus = true;
 			sendSocket.close();
 		} // end of loop
 
 	}
 	
 	public void passPacket(){//basic pass
+		transferStatus = false;
+		finalMessage = false;
+		firstTransfer = false;
+		lengthCheck = false;
 		byte[] data;
 		for (;;) { // loop forever			
 			
-			transferStatus = false;
-			finalMessage = false;
-			firstTransfer = false;
-			lengthCheck = false;
+			
 						
 			do {
 				data = new byte[516];
@@ -870,7 +874,7 @@ public class TFTPSim extends TFTPHost {
 			} while ((lengthCheck && !finalMessage) || (firstTransfer && !readTransfer));
 			//System.out.println("error3");
 			// We're finished with this socket, so close it.
-			transferStatus = false;
+			transferStatus = true;
 			sendSocket.close();
 		} // end of loop
 

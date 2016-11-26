@@ -26,6 +26,7 @@ public class TFTPClient extends TFTPHost{
     public TFTPClient()
     {
         super();
+        super.clientPrompt=true;
         try {
 
             // Construct a datagram socket and bind it to any available
@@ -120,7 +121,8 @@ public class TFTPClient extends TFTPHost{
                     while (timeout) {//wait to receive the ACK00
                         timeout = false;
                         try {
-                        	sendReceiveSocket.setSoTimeout(10000);
+                        	sendReceiveSocket.setSoTimeout(25000);
+                        	System.out.println("Client Timeout");
                             sendReceiveSocket.receive(receivePacket);
                          
                         } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
@@ -179,7 +181,7 @@ public class TFTPClient extends TFTPHost{
                     String saveLocation = sc.next();
                 	File fileLocation = new File(saveLocation+filename); //Check for proper file path !!!!!
                 	// use trycatch for above to check for proper filepath 
-                	//TODO wjskhrlgkwh
+                
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
                     write(out,sendReceiveSocket, sendPort);
                     out.close();

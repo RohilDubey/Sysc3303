@@ -25,11 +25,11 @@ public class TFTPServerListener  extends Thread {
     //status (shutdown or not)
     private boolean status;
     private boolean timeout;
-   
+  
 
     public TFTPServerListener()
-    {
-        super();
+    { 
+    	super();
         try {
             // Construct a datagram socket and bind it to port 69
             // on the local host machine. This socket will be used to
@@ -62,8 +62,8 @@ public class TFTPServerListener  extends Thread {
         // Current version will prompt during every loop iteration however in future version with GUI
         // A dedicated text box will exist so the prompt is only displayed once
        
-        for (;;){
-
+        for (;;){ 
+        	
             data = new byte[516];
             receivePacket = new DatagramPacket(data, data.length);
 
@@ -87,6 +87,8 @@ public class TFTPServerListener  extends Thread {
             // Before creating a new thread, check if shutdown has been intitiated or not. 
             checkStat();
             // create a new thread to handle the file transfer request
+             
+            
             Thread handler=new Thread(new TFTPServerHandler(receivePacket));
             handler.start();
             timeout=true; 
