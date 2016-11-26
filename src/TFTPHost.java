@@ -277,7 +277,11 @@ public class TFTPHost {
 					if (!(parseBlock(receivePacket.getData()) == parseBlock(message))) {
 						System.out.println("ERROR: Acknowledge does not match block sent "
 								+ parseBlock(receivePacket.getData()) + "    " + parseBlock(message));
-						return;
+						
+		    			error = createErrorByte((byte)4, "Unknown TFTP Error. CODE: 0504");
+		    			//Create Error Packet
+		        		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
+		        		sendReceiveSocket.send(sendPacket);
 					}
 				}
 				System.out.println("Read : File transfer ends");
