@@ -56,11 +56,22 @@ public class TFTPHost {
 	protected String parseFilename(String data) {
 		return data.split("\0")[1].substring(1);
 	}
+	protected int checkOpcode(DatagramPacket p){
+		int opcode = p.getData()[1];
+		if(opcode>5||opcode<0){
+			System.out.println("");
+			System.out.println("ERROR: Invalid opcode value of:"+opcode);
+			System.out.println("");
+			return opcode=5;
+		}
+		return opcode;
+		
+	}
 
 	// prints relevent information about an incoming packet
 	protected void printIncomingInfo(DatagramPacket p, String name, boolean verbose) {
+		int opcode =checkOpcode(p);
 		if (verbose) {
-			int opcode = p.getData()[1];
 			System.out.println(name + ": packet received.");
 			System.out.println("From host: " + p.getAddress());
 			System.out.println("Host port: " + p.getPort());
@@ -83,8 +94,8 @@ public class TFTPHost {
 
 	// prints information about an outgoing packet
 	protected void printOutgoingInfo(DatagramPacket p, String name, boolean verbose) {
+		int opcode=checkOpcode(p);
 		if (verbose) {
-			int opcode = p.getData()[1];
 			System.out.println(name + ": packet sent.");
 			System.out.println("To host: " + p.getAddress());
 			System.out.println("Host port: " + p.getPort());
