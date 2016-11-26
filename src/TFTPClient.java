@@ -115,9 +115,6 @@ public class TFTPClient extends TFTPHost{
             	System.out.println("Where is the file location?");
                 String saveLocation = sc.next();
                 
-                TFTPServerHandler t1 = new TFTPServerHandler();
-                t1.filePATH = saveLocation;
-                
                 File fileLocation = new File(saveLocation+filename);
                 try {
                     byte[] resp = new byte[4];

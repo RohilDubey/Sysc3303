@@ -5,6 +5,7 @@
 // 
 //based on SampleSolution for assignment1 given the Sept 19th,2016
 
+
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -13,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.AccessControlException;
+import java.util.List;
 
 public class TFTPServerHandler extends TFTPHost implements Runnable {
     // types of requests we can receive
@@ -30,7 +32,6 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     
     // Server folder location
     public static final String DESKTOP = System.getProperty("user.home")+"/Desktop/Server/";
-    public String filePATH;
 
     // UDP datagram packets and sockets used to send / receive
     String filename;
@@ -38,9 +39,6 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     int writePort;
     boolean readTransfer;
     byte requestFormatRead = 3;
-    public TFTPServerHandler(){
-    	
-    }
     public TFTPServerHandler(DatagramPacket rp){
         super();
         try {
@@ -61,6 +59,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     public void checkFirstMessage(){
         byte[] data=receivePacket.getData(),
         response = new byte[4];
+        boolean flag = false;
 
         Request req; // READ, WRITE or ERROR
 
@@ -82,7 +81,10 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
             req = Request.WRITE; // could be write
             readTransfer=false;
         }
-        else req = Request.ERROR; // bad
+        else {
+        	req = Request.ERROR; // bad
+        	flag = true;
+        }
 
         if (req!=Request.ERROR) { // check for filename
             // search for next all 0 byte
@@ -113,7 +115,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		} else if (req==Request.WRITE) { // for Write it's 0400
 		    response = writeResp;//ACK00
 		} else { // it was invalid, just quit
-		    //throw new Exception("Not yet implemented");
+		    sendError(flag);
 		}        
 		
 		writePort = receivePacket.getPort();	//Get the port
@@ -121,7 +123,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		
 		
         //no Error
-        if(!sendError()){
+        if(!sendError(flag)){
         	System.out.println("Valid request as no error has been encountered.");	
 			printIncomingInfo(receivePacket,"Server",verbose);
 			
@@ -162,23 +164,21 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		
    
 
-    public boolean sendError(){
+    public boolean sendError(boolean errorFourFlag){
     	
     	//Builds a file from the specified filename
-    	File file = new File(filePATH+"//"+filename);
-    	  	
+    	File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
+    	   	
     	//Get data bytes of the packet recieved 
     	byte[] data = receivePacket.getData();
     	
     	//Write request
     	if(data[1] == 2) {
-    		
     		// TODO cannot write due to isWritable always being false
     		if(!file.canWrite()){
     			error = createErrorByte((byte)2, "Cannot write " + filename + ". ACCESS VIOLATION: CODE: 0502");   			  			
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());  
-        		System.out.println("Hello");
         		return boolError = true;
     		}
     		
@@ -186,7 +186,6 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     			error = createErrorByte((byte)3, "Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");   			  			
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());  
-        		System.out.println("Ha");
         		return boolError = true;
     		}
     		
@@ -194,16 +193,19 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     			error = createErrorByte((byte)6, filename + " already exists. CODE: 0506");   
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
-        		System.out.println("Helasdfalo");
-    			boolError = true;
-    			return boolError;
+    			return boolError = true;
     		}
     		
     		else if (!checkPort(receivePacket, receivePacket.getPort(), receivePacket.getAddress())){
     			error = createErrorByte((byte)5, "Unknown port!! Unknown Transfer ID. CODE: 0505");
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
-        		System.out.println("Helasdfsfdsfalo");
+    			return boolError = true;
+    		}
+    		else if (errorFourFlag){
+    			error = createErrorByte((byte)4, "Unknown TFTP Error. CODE: 0504");
+    			//Create Error Packet
+        		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
     			return boolError = true;
     		}
     	}
@@ -241,7 +243,13 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
         		System.out.println("Heladsfesfsdfalo");
     			return boolError = true;
-    		}
+    		}    		
+    		else if (errorFourFlag){
+    			error = createErrorByte((byte)4, "Unknown port!! Unknown TFTP Error. CODE: 0504");
+    			//Create Error Packet
+        		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
+    			return boolError = true;
+    		}	
     	    
     	}
     	return boolError = false;
@@ -262,7 +270,6 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 
     public void read() { //first packet sent should be data01
         BufferedInputStream in;
-        System.out.println("FILE PATH:"+filePATH); 
         try {
             in = new BufferedInputStream(new FileInputStream (DESKTOP+filename));
             super.read(in, sendReceiveSocket, receivePacket.getPort());
@@ -323,7 +330,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     public void write() {//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
         BufferedOutputStream out;
         try {
-            out = new BufferedOutputStream(new FileOutputStream(filePATH+filename));
+            out = new BufferedOutputStream(new FileOutputStream(DESKTOP+filename));
             super.write(out, sendReceiveSocket, writePort);
         }
         catch (FileNotFoundException e) {//File Not Found
