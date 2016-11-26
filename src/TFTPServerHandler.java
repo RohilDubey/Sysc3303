@@ -161,7 +161,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     public boolean sendError(){
     	
     	//Builds a file from the specified filename
-    	File file = new File(DESKTOP+"//"+filename);
+    	File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
     	   	
     	//Get data bytes of the packet recieved 
     	byte[] data = receivePacket.getData();
