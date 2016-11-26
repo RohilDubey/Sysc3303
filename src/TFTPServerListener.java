@@ -35,13 +35,15 @@ public class TFTPServerListener  extends Thread {
             // on the local host machine. This socket will be used to
             // receive UDP Datagram packets.
             receiveSocket = new DatagramSocket(69);
-        } catch(SocketException se) {
+        } 
+        catch(SocketException se) {
             se.printStackTrace();
             System.exit(1);
         }
         try {
             receiveSocket.setSoTimeout(tOut);
-        }catch (SocketException set){ //TODO Error handling Timeout Exceptions
+        }
+        catch (SocketException set){ //TODO Error handling Timeout Exceptions
             set.printStackTrace();
             System.exit(1);
         }
@@ -71,11 +73,13 @@ public class TFTPServerListener  extends Thread {
 	            try {
 	                receiveSocket.receive(receivePacket);
 	                timeout=false;
-	            } catch (InterruptedIOException t){
+	            } 
+	            catch (InterruptedIOException t){
 	                //no request is received during tOut, the listener check the shutdown command.
 	                checkStat();
 	                timeout=true;
-	            }catch (IOException e) {
+	            }
+	            catch (IOException e) {
 	                e.printStackTrace();
 	                System.exit(1);
 	            } 
@@ -85,10 +89,8 @@ public class TFTPServerListener  extends Thread {
             // create a new thread to handle the file transfer request
             Thread handler=new Thread(new TFTPServerHandler(receivePacket));
             handler.start();
-            timeout=true;
-            
+            timeout=true; 
         }
-
     }
 
     public void checkStat(){

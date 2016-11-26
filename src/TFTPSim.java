@@ -73,22 +73,23 @@ public class TFTPSim extends TFTPHost {
 				debugChoice = 0;
 				actBlock = -1; // Set so none of the if statements go off
 				return; // Just exit out of method in case of normal operation
-			} else if (choice.contains("1")) {// lose packet
+			} 
+			else if (choice.contains("1")) {// lose packet
 				System.out.println("Lose packet selected");
 				debugChoice = 1;
-				
-				
 				loop = false;
-			} else if (choice.contains("2")) {// delay packet
+			}
+			else if (choice.contains("2")) {// delay packet
 				System.out.println("Delay packet selected");
-				debugChoice = 2;
-				
+				debugChoice = 2;				
 				loop = false;
-			} else if (choice.contains("3")) {// duplicate packet
+			}
+			else if (choice.contains("3")) {// duplicate packet
 				System.out.println("Duplicate Packet selected");
 				debugChoice = 3;
 				loop = false;
-			} else {// invalid input
+			}
+			else {// invalid input
 				System.out.println("Value entered is not valid");
 			}
 		}
@@ -96,17 +97,17 @@ public class TFTPSim extends TFTPHost {
 	}
 	
 	public void blockSelection(){
-		String num;
-		
+		String num;		
 		if(debugChoice==1){
-		packet = selectPacket();
-		if (packet.contains("2")) { // specific block (data/ack)
-			System.out.println("Which block would you like to lose?");
-			num = sc.next();
-			actBlock = Integer.parseInt(num);
-		} else { // request packet
-			actBlock = 0;
-		}
+			packet = selectPacket();
+			if (packet.contains("2")) { // specific block (data/ack)
+				System.out.println("Which block would you like to lose?");
+				num = sc.next();
+				actBlock = Integer.parseInt(num);
+			} 
+			else { // request packet
+				actBlock = 0;
+			}
 		}
 		else if(debugChoice==2){
 			packet = selectPacket();
@@ -132,9 +133,6 @@ public class TFTPSim extends TFTPHost {
 				actBlock = 0;
 			}
 		}
-		
-		
-		
 	}
 
 	public boolean checkRequest() {
@@ -144,7 +142,8 @@ public class TFTPSim extends TFTPHost {
 		else if (data[1] == 1) {
 			req = Request.READ; // could be read
 			readTransfer = true;
-		} else if (data[1] == 2) {
+		} 
+		else if (data[1] == 2) {
 			req = Request.WRITE; // could be write
 			readTransfer = false;
 		}
@@ -200,30 +199,23 @@ public class TFTPSim extends TFTPHost {
 	}
 		
 	public void delayPacket(){
-	
-		
 		byte[] data;
 		for (;;) { // loop forever			
-			
 			transferStatus = false;
 			finalMessage = false;
 			firstTransfer = false;
-			lengthCheck = false;
-						
+			lengthCheck = false;		
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
-				System.out.println("Simulator: Waiting for packet.");
-				
+				System.out.println("Simulator: Waiting for packet.");	
 				try {
-					receiveSocket.receive(receivePacket);//wait untill you receive a packet
-				} catch (IOException e) {
+					receiveSocket.receive(receivePacket);//wait until you receive a packet
+				} 
+				catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
-				
-				
-				
 				if (!transferStatus && this.promptCheck) {//if already prompted 
 					blockSelection(); 
 					firstTransfer = true;
@@ -232,8 +224,7 @@ public class TFTPSim extends TFTPHost {
 					this.promptCheck =true;
 					simPrompt();
 					filter();
-				}
-				
+				}	
 				printIncomingInfo(receivePacket, "Simulator", verbose);//print the received packet details
 				len = receivePacket.getLength();
 				clientPort = receivePacket.getPort();
@@ -251,18 +242,19 @@ public class TFTPSim extends TFTPHost {
 						System.out.println("Delaying for: "+delay+"ms.");
 						System.out.println();
 						Thread.sleep(delay);
-					} catch (InterruptedException e) {
+					} 
+					catch (InterruptedException e) {
 					}	
 					printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
 							sendReceiveSocket.send(sendPacket);
-						} catch (IOException e) {
+						} 
+						catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
 						}
 					firstTransfer = false;
 				}
-
 				else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { //nth block of client request
 						System.out.println();
 						System.out.println("Delaying for: "+delay+"ms.");
@@ -270,12 +262,11 @@ public class TFTPSim extends TFTPHost {
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
 							sendReceiveSocket.send(sendPacket);
-						} catch (IOException e) {
+						}
+						catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
 						}
-
-					 
 					if (!finalMessage && lengthCheck) {//check if this was the last block 
 						finalMessage = true;
 					}
@@ -284,12 +275,12 @@ public class TFTPSim extends TFTPHost {
 					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					try {
 						sendReceiveSocket.send(sendPacket);
-					} catch (IOException e) {
+					}
+					catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
 					}
 				}
-
 				// Construct a DatagramPacket for receiving packets up
 				// to 100 bytes long (the length of the byte array)
 				if (!finalMessage) {
@@ -298,11 +289,11 @@ public class TFTPSim extends TFTPHost {
 					System.out.println("Simulator: Waiting for packet.");
 					try {
 						sendReceiveSocket.receive(receivePacket);
-					} catch (IOException e) {
+					}
+					catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
 					}
-					
 					serverPort = receivePacket.getPort();
 					printIncomingInfo(receivePacket, "Simulator", verbose);
 					len = receivePacket.getLength();
@@ -311,8 +302,6 @@ public class TFTPSim extends TFTPHost {
 					len = sendPacket.getLength();
 
 					// Send the datagram packet to the client via a new socket.
-
-					
 						/*
 						 * Construct a new datagram socket and bind it to any port
 						 * on the local host machine. This socket will be used
@@ -321,7 +310,8 @@ public class TFTPSim extends TFTPHost {
 						 */
 					try {
 						sendSocket = new DatagramSocket();
-					} catch (SocketException se) {
+					}
+					catch (SocketException se) {
 						se.printStackTrace();
 						System.exit(1);
 					}

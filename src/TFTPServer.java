@@ -4,7 +4,6 @@ import java.util.Scanner;
 
 public class TFTPServer {
 	public static void main(String[] args) {
-		
 		Thread c = new  TFTPServerListener(); 
         c.start();
         String x;

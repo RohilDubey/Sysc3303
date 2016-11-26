@@ -6,6 +6,7 @@
 
 import java.io.*;
 import java.net.*;
+import java.security.AccessControlException;
 
 public class TFTPClient extends TFTPHost{
 
@@ -14,7 +15,6 @@ public class TFTPClient extends TFTPHost{
     public static final int WRITE = 2;
 
     public static String DEFAULT_FILE_PATH = "src/sysc3303/files/";
-    private String filePath;
     
     private int sendPort;
     private Mode run;
@@ -157,12 +157,18 @@ public class TFTPClient extends TFTPHost{
                     }
                     
 
-                } catch (FileNotFoundException e) {//File Not Found
-                	System.out.println("File not found as error packet has been recieved. CODE: 0501");
+                } 
+                catch (FileNotFoundException e) {//File Not Found
+                	System.out.println(filename + " not found. CODE: 0501");
+                	System.exit(1);
+                }
+                catch (AccessControlException a){
+                	System.out.println("Cannot write " + filename + ". ACCESS VIOLATION: CODE: 0502");
                 	System.exit(1);
                 }
                 catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println("Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");
+                    System.exit(1);
                 }
             }
             else if (type==READ) {//read request so the client must write on his side
@@ -178,15 +184,21 @@ public class TFTPClient extends TFTPHost{
                     write(out,sendReceiveSocket, sendPort);
                     out.close();
                 }
+                catch (FileNotFoundException e) {//File Not Found
+                	System.out.println("File not found. CODE: 0501");
+                	System.exit(1);
+                }
+                catch (AccessControlException a){
+                	System.out.println("Cannot write " + filename + ". ACCESS VIOLATION: CODE: 0502");
+                	System.exit(1);
+                }
                 catch (IOException e) {
-                    e.printStackTrace();                }
+                    System.out.println("Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");
+                    System.exit(1);
+                }
             }
-            
-
             promptUser();
-
         } // end of loop
-
         // We're finished, so close the socket.
         sendReceiveSocket.close();
     }

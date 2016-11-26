@@ -13,6 +13,7 @@ public class TFTPHost {
 	protected boolean shutdown;
 	protected boolean timeout;
 	protected byte[] error;
+	protected String message;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
 
 	protected static final String[] mtype = {"nothing", "RRQ", "WRQ", "DATA", "ACK", "ERROR" };
@@ -20,15 +21,15 @@ public class TFTPHost {
 	protected static Scanner sc;
 	protected boolean verbose;
 
-	public void setShutdown() {
-		shutdown = true;
-	}
-
 	public TFTPHost() {
 		sc = new Scanner(System.in);
 		shutdown = false;
 		verbose = true;
 		timeout = true;
+	}
+	
+	protected void setShutdown() {
+		shutdown = true;
 	}
 
 	// returns the packet number
@@ -65,12 +66,13 @@ public class TFTPHost {
 			System.out.println("Packet type: " + mtype[opcode]);
 			if (opcode < 3) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
-			} else {
-				System.out.println("Block number " + parseBlock(p.getData()));
-
 			}
-			if (opcode == 3) {
+			else if (opcode == 3) {
 				System.out.println("Number of bytes: " + (len - 4));
+			}
+			else if (opcode == 5){
+				System.out.println("Sending an Error Message!");
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			System.out.println();
 		}
@@ -89,7 +91,6 @@ public class TFTPHost {
 			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
 			} 
-			
 			else if (opcode == 3){
 				System.out.println("Number of bytes: " + (len - 4));
 			}
@@ -106,7 +107,7 @@ public class TFTPHost {
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
 	 */
-	public void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck) throws IOException {
+	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck) throws IOException {
 		byte[] resp = new byte[4];
 		resp[0] = 0;
 		resp[1] = 4;
@@ -126,11 +127,13 @@ public class TFTPHost {
 						sendReceiveSocket.setSoTimeout(10000);
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
-							System.out.print("Invalid packet.");
-							printIncomingInfo(receivePacket, "ERROR", verbose);
-							System.exit(0);
+							if (!parseErrorPacket(receivePacket)) {
+								printIncomingInfo(receivePacket, "ERROR", verbose);
+								System.exit(0);
+							}
 						}
-					} catch (SocketTimeoutException e) {// TODO Error handling
+					} 
+					catch (SocketTimeoutException e) {// TODO Error handling
 						rePrompt();
 					}
 					}while(bool);
@@ -157,8 +160,8 @@ public class TFTPHost {
 					sendReceiveSocket.setSoTimeout(10000);
 					sendReceiveSocket.send(sendPacket);
 					System.out.print(sendPacket.getData());
-				} catch (IOException e) {// TODO Error handling this could cause
-											// error on .getData() if its null
+				} 
+				catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
@@ -169,7 +172,8 @@ public class TFTPHost {
 			} while (receivePacket.getLength() == 516);
 			System.out.println("write: File transfer ends");
 			out.close();
-		} catch (IOException e) {
+		} 
+		catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -180,7 +184,7 @@ public class TFTPHost {
 	 * from the file in 512 byte chunks and sends them over the socket to the
 	 * port on localhost
 	 */
-	public void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, int port) throws IOException {
+	protected void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, int port) throws IOException {
 		// here the client has waited the ack00 before starting reading=sending
 		// data
 		int n;
@@ -210,7 +214,8 @@ public class TFTPHost {
 					// create the last packet to be sent
 					sendPacket = new DatagramPacket(message, 4, InetAddress.getLocalHost(), port);
 					endFile = true;
-				} else {
+				} 
+				else {
 					message = new byte[n + 4];
 					message[0] = 0;
 					message[1] = 3;
@@ -220,16 +225,17 @@ public class TFTPHost {
 					for (int i = 0; i < n; i++) {
 						message[i + 4] = data[i];
 					}
- // create the packet containing 03 block# and data
-		                	sendPacket = new DatagramPacket(message, n + 4, InetAddress.getLocalHost(), port);
+					
+					// create the packet containing 03 block# and data
+		            sendPacket = new DatagramPacket(message, n + 4, InetAddress.getLocalHost(), port);
 		                
-					if (n < 512)
-						endFile = true;
+					if (n < 512) endFile = true;
 				}
 				// send the data packet
 				try {
 					sendReceiveSocket.send(sendPacket);
-				} catch (IOException e) {
+				} 
+				catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
@@ -248,32 +254,29 @@ public class TFTPHost {
 					try {
 						sendReceiveSocket.setSoTimeout(10000);
 						sendReceiveSocket.receive(receivePacket);
-						
 						if (!validate(receivePacket)) {
-							System.out.print("Invalid packet.");
-							printIncomingInfo(receivePacket, "ERROR", true);
-							System.exit(0);
+							if (!parseErrorPacket(receivePacket)) {
+								printIncomingInfo(receivePacket, "ERROR", true);
+								System.exit(0);
+							}
 						}
-					} catch (SocketTimeoutException e) {
+					} 
+					catch (SocketTimeoutException e) {
 						rePrompt();
 					}
-				
-			
-
-				printIncomingInfo(receivePacket, "Read", verbose);
-
-				// check if the ack corresponds to the data sent just before
-				if (!(parseBlock(receivePacket.getData()) == parseBlock(message))) {
-					System.out.println("ERROR: Acknowledge does not match block sent "
-							+ parseBlock(receivePacket.getData()) + "    " + parseBlock(message));
-					return;
+					printIncomingInfo(receivePacket, "Read", verbose);
+	
+					// check if the ack corresponds to the data sent just before
+					if (!(parseBlock(receivePacket.getData()) == parseBlock(message))) {
+						System.out.println("ERROR: Acknowledge does not match block sent "
+								+ parseBlock(receivePacket.getData()) + "    " + parseBlock(message));
+						return;
+					}
 				}
-
+				System.out.println("Read : File transfer ends");
 			}
-			System.out.println("Read : File transfer ends");
-
 		}
-		}catch (IOException e) {
+		catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
 		}
@@ -281,7 +284,7 @@ public class TFTPHost {
 
 	// this function check if a packet is valid : ACK or DATA packet only for
 	// now on . RRQ and WRQ checked on ServerHandler
-	public static boolean validate(DatagramPacket receivePacket) {
+	protected static boolean validate(DatagramPacket receivePacket) {
 		byte[] data = receivePacket.getData();
 		boolean rep;
 
@@ -342,38 +345,91 @@ public class TFTPHost {
 		if (errorCode == 1) {
 			System.out.println("Error Packet: 01: File Not Found!");
 			// Display the error message
-			String message = new String(rError);
-			System.out.println("Error Message: " + message);
+			try {
+				message = new String(rError, "UTF-8");
+				System.out.println("Error Message: " + message);
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}
 			return true;
 		}
 
 		else if (errorCode == 2) {
 			System.out.println("Error Packet: 02: Access Violation!");
 			// Display the error message
-			String message = new String(rError);
-			System.out.println("Error Message: " + message);
+			try {
+				message = new String(rError, "UTF-8");
+				System.out.println("Error Message: " + message);
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}
 			return true;
 		}
 
 		else if (errorCode == 3) {
 			System.out.println("Error Packet: 03: Disk Full!");
 			// Display the error message
-			String message = new String(rError);
-			System.out.println("Error Message: " + message);
+			try {
+				message = new String(rError, "UTF-8");
+				System.out.println("Error Message: " + message);
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}
 			return true;
 		}
-
+		
+		else if (errorCode == 4){
+			System.out.println("Error Packet: 04: Illegal TFTP Operation!");
+			// Display the error message
+			try {
+				message = new String(rError, "UTF-8");
+				System.out.println("Error Message: " + message);
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}	
+			return true;
+		}
+		
+		else if (errorCode == 5){
+			System.out.println("Error Packet: 05: Unknown Transfer ID!");
+			// Display the error message
+			try {
+				message = new String(rError, "UTF-8");
+				System.out.println("Error Message: " + message);
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}		
+			return true;
+		}
+		
 		else if (errorCode == 6) {
 			System.out.println("Error Packet: 06: File Already Exists!");
 			// Display the error message
-			String message = new String(rError);
-			System.out.println("Error Message: " + message);
+			try {
+				message = new String(rError, "UTF-8");
+				System.out.println("Error Message: " + message);
+			} catch (UnsupportedEncodingException e1) {
+				e1.printStackTrace();
+			}
 			return true;
 		}
 		return false;
 	}// parseErrorPacket() ends
 	
-public void rePrompt(){
+	protected boolean checkPort(DatagramPacket dP, int expectedPortNum, InetAddress expectedAddress){
+		if(dP.getAddress() == expectedAddress && dP.getPort() == expectedPortNum){
+			return true;
+		}
+		
+		else{
+			System.out.println("Unknown port!! Unknown Transfer ID. CODE: 0505");
+			System.out.println("Transfer ID Received: " + dP.getPort());
+			System.out.println("Expected Transfer ID: " + expectedPortNum);
+			return false;
+		}
+	}// checkPort() ends
+	
+	protected void rePrompt(){
 	    	String x;
 	        System.out.println("Would you like to re-transmit Y/N?");
 	        x = sc.next();
@@ -391,8 +447,5 @@ public void rePrompt(){
 	        	System.out.println("Invalid character detected");
 	        	rePrompt();
 	        }
-	    }
-	
-	
-	
+	}//rePrompt() ends
 }
