@@ -30,6 +30,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     
     // Server folder location
     public static final String DESKTOP = System.getProperty("user.home")+"/Desktop/Server/";
+    public String filePATH;
 
     // UDP datagram packets and sockets used to send / receive
     String filename;
@@ -37,6 +38,9 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     int writePort;
     boolean readTransfer;
     byte requestFormatRead = 3;
+    public TFTPServerHandler(){
+    	
+    }
     public TFTPServerHandler(DatagramPacket rp){
         super();
         try {
@@ -161,13 +165,14 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     public boolean sendError(){
     	
     	//Builds a file from the specified filename
-    	File file = new File(DESKTOP+"//"+filename);
-    	   	
+    	File file = new File(filePATH+"//"+filename);
+    	  	
     	//Get data bytes of the packet recieved 
     	byte[] data = receivePacket.getData();
     	
     	//Write request
     	if(data[1] == 2) {
+    		
     		// TODO cannot write due to isWritable always being false
     		if(!file.canWrite()){
     			error = createErrorByte((byte)2, "Cannot write " + filename + ". ACCESS VIOLATION: CODE: 0502");   			  			
@@ -257,6 +262,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 
     public void read() { //first packet sent should be data01
         BufferedInputStream in;
+        System.out.println("FILE PATH:"+filePATH); 
         try {
             in = new BufferedInputStream(new FileInputStream (DESKTOP+filename));
             super.read(in, sendReceiveSocket, receivePacket.getPort());
@@ -317,7 +323,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     public void write() {//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
         BufferedOutputStream out;
         try {
-            out = new BufferedOutputStream(new FileOutputStream(DESKTOP+filename));
+            out = new BufferedOutputStream(new FileOutputStream(filePATH+filename));
             super.write(out, sendReceiveSocket, writePort);
         }
         catch (FileNotFoundException e) {//File Not Found

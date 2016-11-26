@@ -37,18 +37,22 @@ public class TFTPHost {
 
 	// returns the packet number
 	protected int parseBlock(byte[] data) {
+		
 		int x = (int) data[2];
 		int y = (int) data[3];
+		
 		if (x < 0) {
 			x = 256 + x;
 		}
 		if (y < 0) {
 			y = 256 + y;
 		}
-		/*
-		 * System.out.println((int) x); System.out.println("-");
-		 * System.out.println((int)y);
-		 */
+		/**
+		  System.out.println((int) x);
+		  System.out.print("-");
+		  System.out.print((int)y);
+		  */
+		 
 		return 256 * x + y;
 	}
 
@@ -72,6 +76,7 @@ public class TFTPHost {
 			}
 			else if (opcode == 3) {
 				System.out.println("Number of bytes: " + (len - 4));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 5){
 				System.out.println("Sending an Error Message!");
@@ -91,16 +96,18 @@ public class TFTPHost {
 			int len = p.getLength();
 			System.out.println("Length: " + len);
 			System.out.println("Packet type: " + mtype[opcode]);
+			
 			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
 			} 
 			else if (opcode == 3){
 				System.out.println("Number of bytes: " + (len - 4));
+				System.out.println("Block number: " + parseBlock(p.getData()));
 			}
 			
 			else if (opcode == 5) {
 				System.out.println("Sending an Error Message!");
-				System.out.println("Block number " + parseBlock(p.getData()));
+				System.out.println("Block number: " + parseBlock(p.getData()));
 			}
 			System.out.println();
 		}
@@ -338,10 +345,12 @@ public class TFTPHost {
 	
 	// Returns a false if an error packet is not recieved
 	protected boolean parseErrorPacket(DatagramPacket e) {
+		
 
 		// Get the bytes of the packet
-		e.getData();
+		byte[] k = e.getData();
 		// Get the error message received
+			
 		byte[] rError = new byte[e.getData().length - 4];
 		System.arraycopy(e.getData(), 4, rError, 0, e.getData().length - 4);
 

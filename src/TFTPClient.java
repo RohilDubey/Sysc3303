@@ -114,6 +114,10 @@ public class TFTPClient extends TFTPHost{
             	// also file has to be saved in desktop/server folder 
             	System.out.println("Where is the file location?");
                 String saveLocation = sc.next();
+                
+                TFTPServerHandler t1 = new TFTPServerHandler();
+                t1.filePATH = saveLocation;
+                
                 File fileLocation = new File(saveLocation+filename);
                 try {
                     byte[] resp = new byte[4];
@@ -122,7 +126,6 @@ public class TFTPClient extends TFTPHost{
                         timeout = false;
                         try {
                         	sendReceiveSocket.setSoTimeout(25000);
-                        	System.out.println("Client Timeout");
                             sendReceiveSocket.receive(receivePacket);
                          
                         } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
