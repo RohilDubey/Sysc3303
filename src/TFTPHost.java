@@ -416,6 +416,8 @@ public class TFTPHost {
 		return false;
 	}// parseErrorPacket() ends
 	
+	//Returns true if expected address and port match the packet's port number and address, otherwise
+	//retrns false
 	protected boolean checkPort(DatagramPacket dP, int expectedPortNum, InetAddress expectedAddress){
 		if(dP.getAddress() == expectedAddress && dP.getPort() == expectedPortNum){
 			return true;
