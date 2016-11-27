@@ -149,7 +149,7 @@ public class TFTPHost {
 							}
 						}
 					} 
-					catch (SocketTimeoutException e) {// TODO Error handling
+					catch (SocketTimeoutException e) {
 						rePrompt();						
 					}
 					}while(bool);
@@ -177,10 +177,11 @@ public class TFTPHost {
 					sendReceiveSocket.send(sendPacket);
 					System.out.print(sendPacket.getData());
 				} 
-				catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
+				catch (SocketException e) {
+					rePrompt();
+					
 				}
+				
 
 				printOutgoingInfo(sendPacket, this.toString(), verbose);
 				parseBlock(sendPacket.getData());
@@ -280,7 +281,8 @@ public class TFTPHost {
 						}
 					} 
 					catch (SocketTimeoutException e) {
-							rePrompt();
+						rePrompt();
+						
 					}
 					printIncomingInfo(receivePacket, "Read", verbose);
 	

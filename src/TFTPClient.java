@@ -127,7 +127,6 @@ public class TFTPClient extends TFTPHost{
                          
                         } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
                         	rePrompt();
-                        	
                             timeout = true;
                             if (shutdown) {
                                 System.exit(0);
@@ -227,7 +226,7 @@ public class TFTPClient extends TFTPHost{
 
         return result;
     }
-    public void rePrompt(){
+    public void rePrompt(){//TODO A1
     	String x;
         System.out.println("Would you like to re-transmit Y/N?");
         x = sc.next();
@@ -236,28 +235,19 @@ public class TFTPClient extends TFTPHost{
             TFTPClient c = new TFTPClient();
             c.promptUser();
         }
-        else if(x.contains("N")|| x.contains("n")){
-        	System.out.println("Would you like to keep waiting? Y/N?");
-        	x = sc.next();
-        	if (x.contains("N")||x.contains("n")) {
-        		sc.reset();
+        else if(x.contains("N")|| x.contains("n")){        
             	System.out.println("The system is closing");
             	System.exit(1);
-            	 
             }
-        	else if(x.contains("Y") || x.contains("y")){
-        		System.out.println("waiting...");
-        	}
-        	else{
-        	System.out.println("Invalid character detected");
-        	rePrompt();
-        	}
-        }
+        	
         else{
         	System.out.println("Invalid character detected");
         	rePrompt();
+        	}
         }
-    }
+       
+        
+    
 
     public void promptUser(){
 
