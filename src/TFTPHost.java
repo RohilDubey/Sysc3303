@@ -135,7 +135,7 @@ public class TFTPHost {
 				timeout = true;
 				while (timeout) {// wait to receive a data packet
 					timeout = false;
-					do{
+					while(bool)
 					try {
 						bool=false;
 						if(clientPrompt){
@@ -150,10 +150,21 @@ public class TFTPHost {
 						}
 					} 
 					catch (SocketTimeoutException e) {
-						rePrompt();						
+						bool=true;
+						if(rePrompt()==true){
+                    		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                    		int delayTime = sc.nextInt();    
+                    		System.out.println();  
+                    		System.out.println("waiting for: "+delayTime+"ms.");   
+                    		System.out.println();   
+                    		sendReceiveSocket.setSoTimeout(delayTime);
+                    		System.out.println("Waiting to receivce Packet");
+                    		sendReceiveSocket.receive(receivePacket);
+                    	}
+                       		
 					}
-					}while(bool);
-				}
+					}
+				
 				
 				port = receivePacket.getPort();
 
@@ -178,7 +189,17 @@ public class TFTPHost {
 					System.out.print(sendPacket.getData());
 				} 
 				catch (SocketException e) {
-					rePrompt();
+					if(rePrompt()==true){
+                		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                		int delayTime = sc.nextInt();    
+                		System.out.println();  
+                		System.out.println("waiting for: "+delayTime+"ms.");   
+                		System.out.println();   
+                		sendReceiveSocket.setSoTimeout(delayTime);
+                		System.out.println("Waiting to receivce Packet");
+                		sendReceiveSocket.receive(receivePacket);
+                	}
+                    
 					
 				}
 				
@@ -281,7 +302,17 @@ public class TFTPHost {
 						}
 					} 
 					catch (SocketTimeoutException e) {
-						rePrompt();
+						if(rePrompt()==true){
+                    		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                    		int delayTime = sc.nextInt();    
+                    		System.out.println();  
+                    		System.out.println("waiting for: "+delayTime+"ms.");   
+                    		System.out.println();   
+                    		sendReceiveSocket.setSoTimeout(delayTime);
+                    		System.out.println("Waiting to receivce Packet");
+                    		sendReceiveSocket.receive(receivePacket);
+                    	}
+                        
 						
 					}
 					printIncomingInfo(receivePacket, "Read", verbose);
@@ -455,24 +486,38 @@ public class TFTPHost {
 		}
 	}// checkPort() ends
 	
-	protected void rePrompt(){
-			Scanner s = new Scanner(System.in);
+	 public boolean rePrompt(){//TODO A1
+	    	boolean waiting =false;
 	    	String x;
 	        System.out.println("Would you like to re-transmit Y/N?");
-	        x = s.next();
+	        x = sc.next();
 	        if (x.contains("Y")||x.contains("y")) {
-	            s.reset();
+	            sc.reset();
 	            TFTPClient c = new TFTPClient();
 	            c.promptUser();
 	        }
-	        else if(x.contains("N")|| x.contains("n")){
-	        	s.reset();
-	        	System.out.println("The system is closing");
-	        	System.exit(1);
-	        }
+	        else if(x.contains("N")|| x.contains("n")){  
+	            	System.out.println("Would you like to keep waiting Y/N?");
+	            	sc.reset();
+	            	x = sc.next();
+	            	if (x.contains("Y")||x.contains("y")) {
+	            		waiting=true;
+	            		
+	            	}
+	            	else if(x.contains("N")|| x.contains("n")){
+	            		
+	            	}else{
+	            		rePrompt();
+	            	}	            	
+	            }
+	        	
 	        else{
 	        	System.out.println("Invalid character detected");
 	        	rePrompt();
+	        	}
+	        return waiting;
 	        }
-	}//rePrompt() ends
+	 
+	 
+	 
 }

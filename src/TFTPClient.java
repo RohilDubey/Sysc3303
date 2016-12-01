@@ -121,12 +121,22 @@ public class TFTPClient extends TFTPHost{
                     receivePacket = new DatagramPacket(resp,4);
                     while (timeout) {//wait to receive the ACK00
                         timeout = false;
+                        
                         try {
                         	sendReceiveSocket.setSoTimeout(25000);
                             sendReceiveSocket.receive(receivePacket);
                          
                         } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
-                        	rePrompt();
+                        	if(rePrompt()==true){
+                        		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                        		int delayTime = sc.nextInt();    
+                        		System.out.println();  
+                        		System.out.println("waiting for: "+delayTime+"ms.");   
+                        		System.out.println();   
+                        		sendReceiveSocket.setSoTimeout(delayTime);
+                        		System.out.println("Waiting to receivce Packet");
+                        		sendReceiveSocket.receive(receivePacket);
+                        	}
                             timeout = true;
                             if (shutdown) {
                                 System.exit(0);
@@ -226,24 +236,8 @@ public class TFTPClient extends TFTPHost{
 
         return result;
     }
-    public void rePrompt(){//TODO A1
-    	String x;
-        System.out.println("Would you like to re-transmit Y/N?");
-        x = sc.next();
-        if (x.contains("Y")||x.contains("y")) {
-            sc.reset();
-            TFTPClient c = new TFTPClient();
-            c.promptUser();
-        }
-        else if(x.contains("N")|| x.contains("n")){        
-            	System.out.println("The system is closing");
-            	System.exit(1);
-            }
-        	
-        else{
-        	System.out.println("Invalid character detected");
-        	rePrompt();
-        	}
+    public boolean rePrompt(){//TODO A1
+    	return super.rePrompt();
         }
        
         
