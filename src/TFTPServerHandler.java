@@ -182,27 +182,27 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         		return boolError = true;
     		}
     		
-     		else if(file.getFreeSpace() < receivePacket.getLength()){
+     		if(file.getFreeSpace() < receivePacket.getLength()){
     			error = createErrorByte((byte)3, "Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");   			  			
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());  
         		return boolError = true;
     		}
     		
-    		else if(file.exists()){
+    		if(file.exists()){
     			error = createErrorByte((byte)6, filename + " already exists. CODE: 0506");   
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
     			return boolError = true;
     		}
     		
-    		else if (!checkPort(receivePacket, receivePacket.getPort(), receivePacket.getAddress())){
+    		if (!checkPort(receivePacket, receivePacket.getPort(), receivePacket.getAddress())){
     			error = createErrorByte((byte)5, "Unknown port!! Unknown Transfer ID. CODE: 0505");
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
     			return boolError = true;
     		}
-    		else if (errorFourFlag){
+    		if (errorFourFlag){
     			error = createErrorByte((byte)4, "Unknown TFTP Error. CODE: 0504");
     			//Create Error Packet
         		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 

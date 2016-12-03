@@ -138,9 +138,9 @@ public class TFTPHost {
 					while(bool)
 					try {
 						bool=false;
-						if(clientPrompt){
+					
 						sendReceiveSocket.setSoTimeout(25000);
-						}
+						
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
@@ -290,9 +290,9 @@ public class TFTPHost {
 					timeout = false;
 					
 					try {
-						if(clientPrompt){
+						
 						sendReceiveSocket.setSoTimeout(25000);
-						}
+						
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
@@ -489,7 +489,7 @@ public class TFTPHost {
 	 public boolean rePrompt(){//TODO A1
 	    	boolean waiting =false;
 	    	String x;
-	        System.out.println("Would you like to re-transmit Y/N?");
+	        System.out.println("Would you like to re-transmit Y/N? or (W)ait");
 	        x = sc.next();
 	        if (x.contains("Y")||x.contains("y")) {
 	            sc.reset();
@@ -497,20 +497,11 @@ public class TFTPHost {
 	            c.promptUser();
 	        }
 	        else if(x.contains("N")|| x.contains("n")){  
-	            	System.out.println("Would you like to keep waiting Y/N?");
-	            	sc.reset();
-	            	x = sc.next();
-	            	if (x.contains("Y")||x.contains("y")) {
-	            		waiting=true;
-	            		
-	            	}
-	            	else if(x.contains("N")|| x.contains("n")){
-	            		
-	            	}else{
-	            		rePrompt();
-	            	}	            	
+	            	System.out.println("system closing");
 	            }
-	        	
+	        else if(x.contains("W")||x.contains("w")){
+	        	waiting=true;
+	        }
 	        else{
 	        	System.out.println("Invalid character detected");
 	        	rePrompt();
