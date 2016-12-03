@@ -1275,12 +1275,6 @@ public class TFTPSim extends TFTPHost {
 
 }
 	
-	public void chooseTFTP(){
-
-
-	}
-	
-	
 	public void filter(){
 		
 		if(debugChoice ==0){

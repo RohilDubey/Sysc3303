@@ -225,7 +225,7 @@ public class TFTPClient extends TFTPHost{
 
         result[0] =(byte) 0;
         result[1] = (byte) opcode;
-        System.out.println(opcode);
+        //System.out.println(opcode);
         System.arraycopy(filename,0,result,2,lf);
 
         result[lf+2] = 0;
