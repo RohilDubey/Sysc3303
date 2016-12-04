@@ -92,6 +92,25 @@ public class TFTPHost {
 		}
 	}
 
+    public byte[] formatRequest(byte[] filename, byte[] format, int opcode) {
+        int lf = filename.length,lm=format.length;
+
+        byte [] result=new byte[lf+4+lm];
+
+        result[0] =(byte) 0;
+        result[1] = (byte) opcode;
+        //System.out.println(opcode);
+        System.arraycopy(filename,0,result,2,lf);
+
+        result[lf+2] = 0;
+
+        System.arraycopy(format,0,result,3+lf,lm);
+
+        result[lf+3+lm] = 0;
+
+        return result;
+    }
+    	
 	// prints information about an outgoing packet
 	protected void printOutgoingInfo(DatagramPacket p, String name, boolean verbose) {
 		int opcode=checkOpcode(p);

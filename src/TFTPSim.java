@@ -198,7 +198,7 @@ public class TFTPSim extends TFTPHost {
 	}
 	
 	public int portChange(int port){
-		System.out.println("Enter the new port that you'd like yo use");
+		System.out.println("Enter the new port that you'd like to use");
 		int newPort=sc.nextInt();
 		return newPort;
 	}
@@ -245,16 +245,16 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("[2]: DATA");
 			}
 			choice = sc.next();
-			if (choice.contains("1")&& readTransfer){
+			if (choice.contains("1") && readTransfer && !clientOrServer){
 				System.out.println("------RRQ SELECTED------");
 				selectionFlag = true;
 			}
-			else if(choice.contains("1")&&!readTransfer){
+			else if(choice.contains("1") && !readTransfer && !clientOrServer){
 				System.out.println("------WRQ SELECTED------");
 				selectionFlag=true;
 			}
 			else if(choice.contains("2")){
-				System.out.println("------ACK SELECTED------");
+				System.out.println("------DATA/ACK SELECTED------");
 				selectionFlag=true;
 			}
 			else {
