@@ -127,10 +127,10 @@ public class TFTPHost {
 		resp[1] = 4;
 		byte[] data = new byte[516];
 		int port;
-		boolean bool = true;
-		try {
-			bool =true;
+		boolean bool;
+		try {			
 			do {// until receiving a packet <516
+				bool =true;
 				receivePacket = new DatagramPacket(data, 516);
 				// validate and save after we get it
 				timeout = true;

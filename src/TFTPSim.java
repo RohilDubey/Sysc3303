@@ -57,7 +57,7 @@ public class TFTPSim extends TFTPHost {
 
 	public DatagramPacket changeFileName(DatagramPacket p,String s){
 
-		byte[]data =new byte[512];
+		byte[]data =new byte[516];
 		
 		byte[] fn =s.getBytes();//contains new fileName	
 		byte[] allBytes = p.getData();
@@ -86,7 +86,7 @@ public class TFTPSim extends TFTPHost {
 	
 	public DatagramPacket changeMode(DatagramPacket p,String s){
 
-		byte[]data =new byte[512];
+		byte[]data =new byte[516];
 		
 		byte[] modeNew =s.getBytes();//contains new mode
 		byte[] allBytes = p.getData();
@@ -114,16 +114,20 @@ public class TFTPSim extends TFTPHost {
 		return p;
 	}
 	
-	public void removeZero(DatagramPacket p){
+	
+	@SuppressWarnings("null")
+	public DatagramPacket removeZero(DatagramPacket p){//Only applicable to RRQ/WRQ
+		int value = 0;
+		boolean remove = false;
 		int num = 0;
-		byte[] data = new byte[512];
+		byte[] data = new byte[100];
 		data=p.getData();
 		boolean loop = true;
+		boolean loop2=false;
 		while(loop){
-		System.out.println("Which 0 would you like to remove?");
-		System.out.println("Enter 1: first 0(LEADING BIT OF MSG)");
-		System.out.println("Enter 2: second 0(BETWEEN FILENAME AND MODE)");
-		System.out.println("Enter 3: third 0(END OF MSG)");
+		System.out.println("Which 0 would you like to modify?");
+		System.out.println("Enter 1: second 0(BETWEEN FILENAME AND MODE)");
+		System.out.println("Enter 2: third 0(END OF MSG)");
 		num = sc.nextInt();
 		if(num!=1||num!=2|num!=3){
 			loop = true;
@@ -132,13 +136,86 @@ public class TFTPSim extends TFTPHost {
 			loop =false;
 		}
 		}
-		System.out.println("Would you like to remove the 0 Y/N?");
+		while(loop2){
+		System.out.println("Would you like to (R)emove or (C)hange the 0?");
+		String dec=sc.next();
+		if(dec.contains("R")||dec.contains("r")){
+			remove =true;
+			loop=false;
+		}
+		else if(dec.contains("c")||dec.contains("C")){
+			System.out.println("What value would you like change it to?");
+			sc.reset();
+			value=sc.nextInt();
+			remove=false;
+			loop2=false;
+		}
+		else{
+		loop2=true;
+		}
+		}
+		System.out.println();
+		System.out.println("You have chose to");
+		if(remove==true){
+			System.out.print(" remove");
+		}
+		else{
+			System.out.print(" modify");
+		}
+		if(num==2){
+			System.out.print(" the final 0");
+		}
 		if(num==1){
-	
+			System.out.print(" the middle 0");
+		}
+		
+		int location=1;
+		if(remove){
+			while(data[location]!=0){
+				location++;
+			}
+			if(num==2){//last zero
+				location++;
+			
+				while(data[location]!=0){
+					location++;
+				}
+				data[location]=(Byte) null;	
+			}
+			if(num==1){
+				byte[] temp =new byte[100];
+				System.arraycopy(data, 0, temp, 0, location-1);//copy everything before the 0
+				System.arraycopy(data, location+1, temp, location, p.getData().length-location);				
+			}
+			
+		}
+		else{//modify
+			while(data[location]!=0){
+				location++;
+			}
+			if(num==1){				
+				data[location]=(byte) value;			
+			}
+			if(num==2){
+				location++;
+				while(data[location]!=0){
+				location++;
+			}
+				data[location]=(byte) value;	
+				
+			}
+			
+			
 		}
 		
 		
 		
+		//num = the 0 we want to alter
+		//remove true means we remove that 0 false means we change it to a value;
+		
+		p.setData(data);	
+		
+		return p;
 	}
 	
 	public void simPrompt() {// menu for choosing errors
@@ -1283,17 +1360,11 @@ public class TFTPSim extends TFTPHost {
 				
 					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					try {
-
-						if(newFileName!=null){
-							sendPacket = changeFileName(sendPacket,newFileName);
-						}
-						else if(newOpcode!=null){
+						
+						if(newOpcode!=null){
 							sendPacket.getData()[1] = (byte)opcodeC;
 						}
-						else if(newMode!=null){
-							sendPacket = changeMode(sendPacket,newMode);
-						}
-												
+																		
 						sendReceiveSocket.send(sendPacket);
 					} catch (IOException e) {
 						e.printStackTrace();
