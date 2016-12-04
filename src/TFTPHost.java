@@ -346,7 +346,9 @@ public class TFTPHost {
 					// create the packet containing 03 block# and data
 		            sendPacket = new DatagramPacket(message, n + 4, InetAddress.getLocalHost(), port);
 		                
-					if (n < 512) endFile = true;
+					if (n < 512) {
+						endFile = true;
+					}
 				}
 				// send the data packet
 
@@ -356,7 +358,7 @@ public class TFTPHost {
 				catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
-
+				}
 				while(timeout){
 					try {
 						System.out.println("testerror13");
@@ -369,7 +371,7 @@ public class TFTPHost {
 	                	System.out.println("Socket timed out. Will re-send packet");
 					}				
 					catch (IOException j) {
-						e.printStackTrace();
+						j.printStackTrace();
 						System.exit(1);
 					}	
 				}
@@ -378,7 +380,7 @@ public class TFTPHost {
 
 				// create the receivePacket that should contains the ack or an
 				// error
-				System.out.println("RECEIVE!!!!!!");
+				
 				receivePacket = new DatagramPacket(resp, 4);
 
 				timeout = true;
@@ -432,18 +434,10 @@ public class TFTPHost {
 				}
 					printIncomingInfo(receivePacket, "Read", verbose);
 					// check if the ack corresponds to the data sent just before
-					if (!(parseBlock(receivePacket.getData()) == parseBlock(message))) {
-						System.out.println("ERROR: Acknowledge does not match block sent "
-								+ parseBlock(receivePacket.getData()) + "    " + parseBlock(message));
-						
-		    			error = createErrorByte((byte)4, "Unknown TFTP Error. CODE: 0504");
-		    			//Create Error Packet
-		        		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
-		        		sendReceiveSocket.send(sendPacket);
-					}
+					
 				System.out.println("Read : File transfer ends");
 			}
-		}
+		
 		}
 		catch (IOException e) {
 			e.printStackTrace();

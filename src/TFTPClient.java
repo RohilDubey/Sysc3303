@@ -156,7 +156,7 @@ public class TFTPClient extends TFTPHost{
     						System.exit(1);
     					}		
                     }
-                    
+                   
                     printIncomingInfo(receivePacket,"Client",verbose);
                     
                     //Check if error Packet was received
