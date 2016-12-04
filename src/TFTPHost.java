@@ -20,7 +20,9 @@ public class TFTPHost {
 
 	protected static Scanner sc;
 	protected boolean verbose;
-
+	// Server folder location
+    protected static final String DESKTOP = "C:/temp/Server/";
+    
 	public TFTPHost() {
 		sc = new Scanner(System.in);
 		shutdown = false;
@@ -80,12 +82,14 @@ public class TFTPHost {
 			System.out.println("Packet type: " + mtype[opcode]);
 			if (opcode < 3) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 3) {
 				System.out.println("Number of bytes: " + (len - 4));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 5){
-				System.out.println("Sending an Error Message!");
+				System.out.println("Recieving an Error Message!");	
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			System.out.println();
@@ -123,9 +127,11 @@ public class TFTPHost {
 			System.out.println("Packet type: " + mtype[opcode]);
 			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			} 
 			else if (opcode == 3){
 				System.out.println("Number of bytes: " + (len - 4));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			
 			else if (opcode == 5) {
@@ -140,7 +146,7 @@ public class TFTPHost {
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
 	 */
-	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck) throws IOException {
+	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck) throws IOException, AlreadyExistsException, WriteAccessException {
 		byte[] resp = new byte[4];
 		resp[0] = 0;
 		resp[1] = 4;
@@ -150,16 +156,13 @@ public class TFTPHost {
 		try {
 			do {// until receiving a packet <516
 				bool = true;
-				System.out.println("testerror3");
 				receivePacket = new DatagramPacket(data, 516);
 				// validate and save after we get it
 				timeout = true;
 				while (timeout) {// wait to receive a data packet
-					System.out.println("testerror4");
 					timeout = false;
 					while(bool)
 					try {
-						System.out.println("testerror5");
 						bool=false;
 					
 						sendReceiveSocket.setSoTimeout(25000);
@@ -186,28 +189,23 @@ public class TFTPHost {
                     	}
                        		
 					}
-					}
-				
-				System.out.println("testerror6");
+				}
+	
 				port = receivePacket.getPort();
 
 				printIncomingInfo(receivePacket, "Write", verbose);
 
 				// write the data received and verified on the output file
 				out.write(data, 4, receivePacket.getLength() - 4);
-				System.out.println("testerror7");
 				// copy the block number received in the ack response
 				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
 				  if(simCheck==23){
 	                	sendPacket = new DatagramPacket(resp, resp.length,InetAddress.getLocalHost(), simCheck);
-	                	System.out.println("testerror8");
 	                } else {
-	                	System.out.println("testerror9");
 	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
 	                }
 				
 				try {
-					System.out.println("testerror10");
 					sendReceiveSocket.setSoTimeout(25000);
 					sendReceiveSocket.send(sendPacket);
 					System.out.print(sendPacket.getData());
@@ -226,8 +224,6 @@ public class TFTPHost {
                     
 					
 				}
-				
-				System.out.println("testerror11");
 				printOutgoingInfo(sendPacket, this.toString(), verbose);
 				parseBlock(sendPacket.getData());
 
@@ -246,7 +242,7 @@ public class TFTPHost {
 	 * from the file in 512 byte chunks and sends them over the socket to the
 	 * port on localhost
 	 */
-	protected void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, int port) throws IOException {
+	protected void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, int port) throws IOException, AlreadyExistsException, WriteAccessException {
 		// here the client has waited the ack00 before starting reading=sending
 		// data
 		int n;
@@ -259,7 +255,6 @@ public class TFTPHost {
 		boolean endFile = false;
 
 		try {
-			System.out.println("testerror12");
 			while (((n = in.read(data)) != -1) || endFile == false) {
 				numberblock++;
 				// create the corresponding block number in 2 bytes
@@ -295,7 +290,6 @@ public class TFTPHost {
 				}
 				// send the data packet
 				try {
-					System.out.println("testerror13");
 					sendReceiveSocket.send(sendPacket);
 				} 
 				catch (IOException e) {
@@ -310,17 +304,13 @@ public class TFTPHost {
 
 				receivePacket = new DatagramPacket(resp, 4);
 
-				System.out.println("testerror14");
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
 					timeout = false;
-					System.out.println("testerror15");
 					try {
 						
 						sendReceiveSocket.setSoTimeout(25000);
-						System.out.println("testerror16");
 						sendReceiveSocket.receive(receivePacket);
-						System.out.println("testerror17");
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
 								printIncomingInfo(receivePacket, "ERROR", true);
@@ -343,7 +333,6 @@ public class TFTPHost {
 						
 					}
 					printIncomingInfo(receivePacket, "Read", verbose);
-					System.out.println("testerror17");
 					// check if the ack corresponds to the data sent just before
 					if (!(parseBlock(receivePacket.getData()) == parseBlock(message))) {
 						System.out.println("ERROR: Acknowledge does not match block sent "
@@ -352,7 +341,6 @@ public class TFTPHost {
 		    			error = createErrorByte((byte)4, "Unknown TFTP Error. CODE: 0504");
 		    			//Create Error Packet
 		        		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
-		        		System.out.println("testerror17");
 		        		sendReceiveSocket.send(sendPacket);
 					}
 				}
@@ -514,7 +502,7 @@ public class TFTPHost {
 		}
 	}// checkPort() ends
 	
-	 public boolean rePrompt(){//TODO A1
+	 public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
 		 	Scanner s= new Scanner(System.in);
 	    	boolean waiting =false;
 	    	String x;

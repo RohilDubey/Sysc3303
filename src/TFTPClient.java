@@ -6,6 +6,9 @@
 
 import java.io.*;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.AccessControlException;
 
 public class TFTPClient extends TFTPHost{
@@ -40,7 +43,7 @@ public class TFTPClient extends TFTPHost{
         run=Mode.NORMAL;
     }
 
-    public void sendAndReceive(int type)
+    public void sendAndReceive(int type) throws AlreadyExistsException, UnknownHostException, WriteAccessException
     {
         byte[] msg = new byte[100], // message we send
         fn, // filename as an array of bytes
@@ -68,7 +71,6 @@ public class TFTPClient extends TFTPHost{
 
         len = fn.length+md.length+4; // length of the message
         // length of filename + length of mode + opcode (2) + two 0s (2)
-
         // Construct a datagram packet that is to be sent to a specified port
         // on a specified host.
         // The arguments are:
@@ -81,10 +83,11 @@ public class TFTPClient extends TFTPHost{
         //     same computer). InetAddress.getLocalHost() returns the Internet
         //     address of the local host.
         //  69 - the destination port number on the destination host.
-        try {
-            sendPacket = new DatagramPacket(msg, len,
-                InetAddress.getLocalHost(), sendPort);
-        } catch (UnknownHostException e) {
+        try {      	
+            sendPacket = new DatagramPacket(msg, len, InetAddress.getLocalHost(), sendPort);            
+        } 
+        
+        catch (UnknownHostException e) {
             e.printStackTrace();
             System.exit(1);
         }
@@ -111,9 +114,15 @@ public class TFTPClient extends TFTPHost{
             	// also file has to be saved in desktop/server folder 
             	System.out.println("Where is the file location?");
                 String saveLocation = sc.next();
-                
                 File fileLocation = new File(saveLocation+filename);
+                Path path = Paths.get(saveLocation + filename);
                 try {
+                	/*
+                	if(!fileLocation.canWrite()){
+            			System.out.println("Helloa");
+            			throw new WriteAccessException("Cannot write: " + filename);      
+            		}	*/
+                	
                     byte[] resp = new byte[4];
                     receivePacket = new DatagramPacket(resp,4);
                     while (timeout) {//wait to receive the ACK00
@@ -145,7 +154,7 @@ public class TFTPClient extends TFTPHost{
                     
                     //Check if error Packet was received
                     if(parseErrorPacket(receivePacket) == true){
-                    	//System.exit(1);
+                    	System.exit(1);
                     }
                     
                     //Not an error Packet
@@ -163,45 +172,76 @@ public class TFTPClient extends TFTPHost{
                             System.exit(0);
                         }
                     }
-                    
-
                 } 
-                catch (FileNotFoundException e) {//File Not Found
-                	System.out.println(filename + " not found. CODE: 0501");
-                	System.exit(1);
-                }
-                catch (AccessControlException a){
-                	System.out.println("Cannot write " + filename + ". ACCESS VIOLATION: CODE: 0502");
-                	System.exit(1);
-                }
+                catch(FileNotFoundException f){
+                	error = createErrorByte((byte)1, filename + "not found. CODE 0501.");
+                	//Send error packet
+                    sendPacket = new DatagramPacket(error, error.length, InetAddress.getLocalHost(), sendPort);
+                    printOutgoingInfo(sendPacket,"Client",verbose);
+        		    try {
+        			   sendReceiveSocket.send(sendPacket);
+        			}
+        		    catch (IOException d) {
+        			       d.printStackTrace();
+        			       System.exit(1);
+        			}
+        		    System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
+        		    System.out.println();
+        		    System.exit(1);
+                }/*
+                catch(WriteAccessException wA){
+                	error = createErrorByte((byte)2, "Failed to write the " + filename + ". CODE 0502.");
+                	//Send error packet
+                    sendPacket = new DatagramPacket(error, error.length, InetAddress.getLocalHost(), sendPort);
+                    printOutgoingInfo(sendPacket,"Client",verbose);
+        		    try {
+        			   sendReceiveSocket.send(sendPacket);
+        			}
+        		    catch (IOException d) {
+        			       d.printStackTrace();
+        			       System.exit(1);
+        			}
+        		    System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
+        		    System.out.println();
+        		    System.exit(1);
+                }*/
                 catch (IOException e) {
-                    System.out.println("Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");
+                    e.printStackTrace();
                     System.exit(1);
                 }
             }
-            else if (type==READ) {//read request so the client must write on his side
-            	
+            else if (type==READ) {//read request so the client must write on his side            	
             	//here the client doesn't have to wait for ack00 start directly to write
                 try {
                 	System.out.println("Where would you like to save the file?");
+                	
                     String saveLocation = sc.next();
-                	File fileLocation = new File(saveLocation+filename); //Check for proper file path !!!!!
-                	// use trycatch for above to check for proper filepath 
-                
+                    /*if(file.exists()){
+                		throw new AlreadyExistsException(filename + "already exists in the directory: " + saveLocation + filename + ".");
+        			}*/
+                	File fileLocation = new File(saveLocation+filename);                    	
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
                     write(out,sendReceiveSocket, sendPort);
                     out.close();
                 }
-                catch (FileNotFoundException e) {//File Not Found
-                	System.out.println("File not found. CODE: 0501");
-                	System.exit(1);
-                }
-                catch (AccessControlException a){
-                	System.out.println("Cannot write " + filename + ". ACCESS VIOLATION: CODE: 0502");
-                	System.exit(1);
+                catch(AlreadyExistsException a){
+                	System.out.print("helafiodsf");
+                	error = createErrorByte((byte)6, filename + " already exists. CODE 0506.");
+                	//Send error packet
+                    sendPacket = new DatagramPacket(error, error.length, InetAddress.getLocalHost(), sendPort);
+                    printOutgoingInfo(sendPacket,"Client",verbose);
+        		    try {
+        			   sendReceiveSocket.send(sendPacket);
+        			}
+        		    catch (IOException d) {
+        			       d.printStackTrace();
+        			       System.exit(1);
+        			}
+        		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+        		    System.out.println();
                 }
                 catch (IOException e) {
-                    System.out.println("Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");
+                    e.printStackTrace();
                     System.exit(1);
                 }
             }
@@ -215,14 +255,11 @@ public class TFTPClient extends TFTPHost{
      * formatRequest takes a filename and a format and an opcode (which corresponds to read or write)
      * and formats them into a correctly formatted request
      */
-    public boolean rePrompt(){//TODO A1
+    public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
     	return super.rePrompt();
-        }
-       
-        
-    
-
-    public void promptUser(){
+    }
+  
+    public void promptUser() throws AlreadyExistsException, UnknownHostException, WriteAccessException{
 
         String x;
         System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
@@ -267,7 +304,7 @@ public class TFTPClient extends TFTPHost{
 
     }
 
-    public static void main(String args[])
+    public static void main(String args[]) throws AlreadyExistsException, UnknownHostException, WriteAccessException
     {
         TFTPClient c = new TFTPClient();
         c.promptUser();
