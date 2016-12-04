@@ -123,7 +123,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		
 		
         //no Error
-        if(!sendError(flag)){
+        //if(!sendError(flag)){
         	System.out.println("Valid request as no error has been encountered.");	
 			printIncomingInfo(receivePacket,"Server",verbose);
 			
@@ -142,7 +142,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 				System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 				System.out.println();
 			}
-        }
+       /* }
         
         //There is an error
         else{
@@ -159,7 +159,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     	    }
     	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
     	    System.out.println();
-        }
+        }*/
     }
 		
    
