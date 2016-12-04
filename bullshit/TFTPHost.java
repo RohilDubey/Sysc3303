@@ -20,7 +20,9 @@ public class TFTPHost {
 
 	protected static Scanner sc;
 	protected boolean verbose;
-
+	// Server folder location
+    protected static final String DESKTOP = "C:/temp/Server/";
+    
 	public TFTPHost() {
 		sc = new Scanner(System.in);
 		shutdown = false;
@@ -80,18 +82,39 @@ public class TFTPHost {
 			System.out.println("Packet type: " + mtype[opcode]);
 			if (opcode < 3) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 3) {
 				System.out.println("Number of bytes: " + (len - 4));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 5){
-				System.out.println("Sending an Error Message!");
+				System.out.println("Recieving an Error Message!");	
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			System.out.println();
 		}
 	}
 
+    public byte[] formatRequest(byte[] filename, byte[] format, int opcode) {
+        int lf = filename.length,lm=format.length;
+
+        byte [] result=new byte[lf+4+lm];
+
+        result[0] =(byte) 0;
+        result[1] = (byte) opcode;
+        //System.out.println(opcode);
+        System.arraycopy(filename,0,result,2,lf);
+
+        result[lf+2] = 0;
+
+        System.arraycopy(format,0,result,3+lf,lm);
+
+        result[lf+3+lm] = 0;
+
+        return result;
+    }
+    	
 	// prints information about an outgoing packet
 	protected void printOutgoingInfo(DatagramPacket p, String name, boolean verbose) {
 		int opcode=checkOpcode(p);
@@ -104,9 +127,11 @@ public class TFTPHost {
 			System.out.println("Packet type: " + mtype[opcode]);
 			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			} 
 			else if (opcode == 3){
 				System.out.println("Number of bytes: " + (len - 4));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			
 			else if (opcode == 5) {
@@ -121,15 +146,16 @@ public class TFTPHost {
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
 	 */
-	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck) throws IOException {
+	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck) throws IOException, AlreadyExistsException, WriteAccessException {
 		byte[] resp = new byte[4];
 		resp[0] = 0;
 		resp[1] = 4;
 		byte[] data = new byte[516];
 		int port;
-		boolean bool = true;
+		boolean bool;
 		try {
 			do {// until receiving a packet <516
+				bool = true;
 				receivePacket = new DatagramPacket(data, 516);
 				// validate and save after we get it
 				timeout = true;
@@ -138,9 +164,9 @@ public class TFTPHost {
 					while(bool)
 					try {
 						bool=false;
-						if(clientPrompt){
+					
 						sendReceiveSocket.setSoTimeout(25000);
-						}
+						
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
@@ -163,24 +189,20 @@ public class TFTPHost {
                     	}
                        		
 					}
-					}
-				
-				
+				}
+	
 				port = receivePacket.getPort();
 
 				printIncomingInfo(receivePacket, "Write", verbose);
 
 				// write the data received and verified on the output file
 				out.write(data, 4, receivePacket.getLength() - 4);
-
 				// copy the block number received in the ack response
 				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
 				  if(simCheck==23){
-	                	sendPacket = new DatagramPacket(resp, resp.length,
-	                			InetAddress.getLocalHost(), simCheck);
+	                	sendPacket = new DatagramPacket(resp, resp.length,InetAddress.getLocalHost(), simCheck);
 	                } else {
-	                	sendPacket = new DatagramPacket(resp, resp.length,
-	                            receivePacket.getAddress(), receivePacket.getPort());
+	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
 	                }
 				
 				try {
@@ -202,8 +224,6 @@ public class TFTPHost {
                     
 					
 				}
-				
-
 				printOutgoingInfo(sendPacket, this.toString(), verbose);
 				parseBlock(sendPacket.getData());
 
@@ -222,7 +242,7 @@ public class TFTPHost {
 	 * from the file in 512 byte chunks and sends them over the socket to the
 	 * port on localhost
 	 */
-	protected void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, int port) throws IOException {
+	protected void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, int port) throws IOException, AlreadyExistsException, WriteAccessException {
 		// here the client has waited the ack00 before starting reading=sending
 		// data
 		int n;
@@ -235,7 +255,6 @@ public class TFTPHost {
 		boolean endFile = false;
 
 		try {
-
 			while (((n = in.read(data)) != -1) || endFile == false) {
 				numberblock++;
 				// create the corresponding block number in 2 bytes
@@ -288,11 +307,9 @@ public class TFTPHost {
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
 					timeout = false;
-					
 					try {
-						if(clientPrompt){
+						
 						sendReceiveSocket.setSoTimeout(25000);
-						}
 						sendReceiveSocket.receive(receivePacket);
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
@@ -316,7 +333,6 @@ public class TFTPHost {
 						
 					}
 					printIncomingInfo(receivePacket, "Read", verbose);
-	
 					// check if the ack corresponds to the data sent just before
 					if (!(parseBlock(receivePacket.getData()) == parseBlock(message))) {
 						System.out.println("ERROR: Acknowledge does not match block sent "
@@ -486,35 +502,29 @@ public class TFTPHost {
 		}
 	}// checkPort() ends
 	
-	 public boolean rePrompt(){
+	 public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
+		 	Scanner s= new Scanner(System.in);
 	    	boolean waiting =false;
 	    	String x;
-	        System.out.println("Would you like to re-transmit Y/N?");
-	        x = sc.next();
+	        System.out.println("Would you like to re-transmit Y/N? or (W)ait");
+	        x = s.next();
 	        if (x.contains("Y")||x.contains("y")) {
-	            sc.reset();
+	            s.reset();
 	            TFTPClient c = new TFTPClient();
 	            c.promptUser();
 	        }
 	        else if(x.contains("N")|| x.contains("n")){  
-	            	System.out.println("Would you like to keep waiting Y/N?");
-	            	sc.reset();
-	            	x = sc.next();
-	            	if (x.contains("Y")||x.contains("y")) {
-	            		waiting=true;
-	            		
-	            	}
-	            	else if(x.contains("N")|| x.contains("n")){
-	            		
-	            	}else{
-	            		rePrompt();
-	            	}	            	
+	            	System.out.println("system closing");
 	            }
+	        else if(x.contains("W")||x.contains("w")){
 	        	
+	        	waiting=true;
+	        }
 	        else{
 	        	System.out.println("Invalid character detected");
 	        	rePrompt();
 	        	}
+	        s.close();
 	        return waiting;
 	        }
 	 
