@@ -95,7 +95,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
             if (j==2) req=Request.ERROR; // filename is 0 bytes long
             // otherwise, extract filename
             filename = new String(data,2,j-2);
-        }
+        } 
         
         if(req!=Request.ERROR) { // check for mode
 		    // search for next all 0 byte

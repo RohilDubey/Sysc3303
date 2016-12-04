@@ -114,6 +114,33 @@ public class TFTPSim extends TFTPHost {
 		return p;
 	}
 	
+	public void removeZero(DatagramPacket p){
+		int num = 0;
+		byte[] data = new byte[512];
+		data=p.getData();
+		boolean loop = true;
+		while(loop){
+		System.out.println("Which 0 would you like to remove?");
+		System.out.println("Enter 1: first 0(LEADING BIT OF MSG)");
+		System.out.println("Enter 2: second 0(BETWEEN FILENAME AND MODE)");
+		System.out.println("Enter 3: third 0(END OF MSG)");
+		num = sc.nextInt();
+		if(num!=1||num!=2|num!=3){
+			loop = true;
+		}
+		else{
+			loop =false;
+		}
+		}
+		System.out.println("Would you like to remove the 0 Y/N?");
+		if(num==1){
+	
+		}
+		
+		
+		
+	}
+	
 	public void simPrompt() {// menu for choosing errors
 		Scanner sc = new Scanner(System.in);
 		String choice;

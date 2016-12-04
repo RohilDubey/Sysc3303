@@ -116,7 +116,7 @@ public class TFTPHost {
 			System.out.println();
 		}
 	}
-
+ 
 	/*
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
@@ -129,6 +129,7 @@ public class TFTPHost {
 		int port;
 		boolean bool = true;
 		try {
+			bool =true;
 			do {// until receiving a packet <516
 				receivePacket = new DatagramPacket(data, 516);
 				// validate and save after we get it
