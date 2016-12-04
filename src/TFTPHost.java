@@ -92,6 +92,25 @@ public class TFTPHost {
 		}
 	}
 
+    public byte[] formatRequest(byte[] filename, byte[] format, int opcode) {
+        int lf = filename.length,lm=format.length;
+
+        byte [] result=new byte[lf+4+lm];
+
+        result[0] =(byte) 0;
+        result[1] = (byte) opcode;
+        //System.out.println(opcode);
+        System.arraycopy(filename,0,result,2,lf);
+
+        result[lf+2] = 0;
+
+        System.arraycopy(format,0,result,3+lf,lm);
+
+        result[lf+3+lm] = 0;
+
+        return result;
+    }
+    	
 	// prints information about an outgoing packet
 	protected void printOutgoingInfo(DatagramPacket p, String name, boolean verbose) {
 		int opcode=checkOpcode(p);
@@ -128,16 +147,21 @@ public class TFTPHost {
 		byte[] data = new byte[516];
 		int port;
 		boolean bool;
-		try {			
+
+		try {
 			do {// until receiving a packet <516
-				bool =true;
+				bool = true;
+				System.out.println("testerror3");
+
 				receivePacket = new DatagramPacket(data, 516);
 				// validate and save after we get it
 				timeout = true;
 				while (timeout) {// wait to receive a data packet
+					System.out.println("testerror4");
 					timeout = false;
 					while(bool)
 					try {
+						System.out.println("testerror5");
 						bool=false;
 					
 						sendReceiveSocket.setSoTimeout(25000);
@@ -166,23 +190,30 @@ public class TFTPHost {
 					}
 					}
 				
-				
+				System.out.println("testerror6");
 				port = receivePacket.getPort();
 
 				printIncomingInfo(receivePacket, "Write", verbose);
 
 				// write the data received and verified on the output file
 				out.write(data, 4, receivePacket.getLength() - 4);
-
+				System.out.println("testerror7");
 				// copy the block number received in the ack response
 				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
 				  if(simCheck==23){
 	                	sendPacket = new DatagramPacket(resp, resp.length,InetAddress.getLocalHost(), simCheck);
-	                } else {
+	                    System.out.println("testerror8");
+	                }
+
+	                	
+	                else {
+	                	System.out.println("testerror9");
+
 	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
 	                }
 				
 				try {
+					System.out.println("testerror10");
 					sendReceiveSocket.setSoTimeout(25000);
 					sendReceiveSocket.send(sendPacket);
 					System.out.print(sendPacket.getData());
@@ -202,7 +233,7 @@ public class TFTPHost {
 					
 				}
 				
-
+				System.out.println("testerror11");
 				printOutgoingInfo(sendPacket, this.toString(), verbose);
 				parseBlock(sendPacket.getData());
 
@@ -234,7 +265,7 @@ public class TFTPHost {
 		boolean endFile = false;
 
 		try {
-
+			System.out.println("testerror12");
 			while (((n = in.read(data)) != -1) || endFile == false) {
 				numberblock++;
 				// create the corresponding block number in 2 bytes
@@ -270,6 +301,7 @@ public class TFTPHost {
 				}
 				// send the data packet
 				try {
+					System.out.println("testerror13");
 					sendReceiveSocket.send(sendPacket);
 				} 
 				catch (IOException e) {
@@ -284,15 +316,17 @@ public class TFTPHost {
 
 				receivePacket = new DatagramPacket(resp, 4);
 
+				System.out.println("testerror14");
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
 					timeout = false;
-					
+					System.out.println("testerror15");
 					try {
 						
 						sendReceiveSocket.setSoTimeout(25000);
-						
+						System.out.println("testerror16");
 						sendReceiveSocket.receive(receivePacket);
+						System.out.println("testerror17");
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
 								printIncomingInfo(receivePacket, "ERROR", true);
@@ -315,7 +349,7 @@ public class TFTPHost {
 						
 					}
 					printIncomingInfo(receivePacket, "Read", verbose);
-	
+					System.out.println("testerror17");
 					// check if the ack corresponds to the data sent just before
 					if (!(parseBlock(receivePacket.getData()) == parseBlock(message))) {
 						System.out.println("ERROR: Acknowledge does not match block sent "
@@ -324,6 +358,7 @@ public class TFTPHost {
 		    			error = createErrorByte((byte)4, "Unknown TFTP Error. CODE: 0504");
 		    			//Create Error Packet
 		        		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort()); 
+		        		System.out.println("testerror17");
 		        		sendReceiveSocket.send(sendPacket);
 					}
 				}

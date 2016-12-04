@@ -93,10 +93,7 @@ public class TFTPClient extends TFTPHost{
 
         // Send the datagram packet to the server via the send/receive socket.
         try {
-        	
             sendReceiveSocket.send(sendPacket);
-            
-       
         } catch (IOException e) {
         	 e.printStackTrace();
              System.exit(1);
@@ -218,24 +215,6 @@ public class TFTPClient extends TFTPHost{
      * formatRequest takes a filename and a format and an opcode (which corresponds to read or write)
      * and formats them into a correctly formatted request
      */
-    public byte[] formatRequest(byte[] filename, byte[] format, int opcode) {
-        int lf = filename.length,lm=format.length;
-
-        byte [] result=new byte[lf+4+lm];
-
-        result[0] =(byte) 0;
-        result[1] = (byte) opcode;
-        //System.out.println(opcode);
-        System.arraycopy(filename,0,result,2,lf);
-
-        result[lf+2] = 0;
-
-        System.arraycopy(format,0,result,3+lf,lm);
-
-        result[lf+3+lm] = 0;
-
-        return result;
-    }
     public boolean rePrompt(){//TODO A1
     	return super.rePrompt();
         }

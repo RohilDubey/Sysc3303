@@ -24,6 +24,7 @@ public class TFTPSim extends TFTPHost {
 	private int clientPort, serverPort = 69, j = 0, len, debugChoice, actBlock, delay,opcodeC;
 	private boolean transferStatus, readTransfer, firstTransfer, lengthCheck,promptCheck;
 	private Request req; // READ, WRITE or ERROR
+	// clientOrServer true = server, false = client
 	private boolean clientOrServer,selectionFlag;
 	private byte[] data;
 	
@@ -55,66 +56,7 @@ public class TFTPSim extends TFTPHost {
 		}
 	}
 
-	public DatagramPacket changeFileName(DatagramPacket p,String s){
 
-		byte[]data =new byte[516];
-		
-		byte[] fn =s.getBytes();//contains new fileName	
-		byte[] allBytes = p.getData();
-	
-		data[0] = p.getData()[0];
-		data[1] = p.getData()[1];
-		System.arraycopy(fn, 2, data, 2, fn.length);//move everything excluding 2 first bits
-		
-		data[fn.length+3]=0;//0 after fileName
-		byte[] mode = new byte[512];
-		int count=0;
-		for(int j=fn.length+2;j<=p.getData().length;j++){
-			if(allBytes[j]==0){
-				j=p.getData().length;
-			}
-			mode[count]=allBytes[j];
-			count++;
-		}
-		
-		
-		System.arraycopy(mode, 0, data, fn.length+3, mode.length);
-		
-		p.setData(data);
-		return p;
-	}
-	
-	public DatagramPacket changeMode(DatagramPacket p,String s){
-
-		byte[]data =new byte[516];
-		
-		byte[] modeNew =s.getBytes();//contains new mode
-		byte[] allBytes = p.getData();
-	
-		data[0] = p.getData()[0];
-		data[1] = p.getData()[1];
-		//System.arraycopy(fn, 2, data, 2, fn.length);//move everything excluding 2 first bits
-		
-		//data[fn.length+3]=0;//0 after fileName
-		byte[] fn1 = new byte[512];
-		byte[] mode = new byte[512];
-		int count=0;
-		int count1=0;
-		for(int j=2;j<=p.getData().length;j++){
-			if(allBytes[j]==0){
-				j=p.getData().length;
-			}
-			fn1[count]=allBytes[j];
-			count++;
-		}
-		data[count-1]=0;
-		System.arraycopy(allBytes, 2, data, 0, count+3);
-		System.arraycopy(modeNew, 0, data,data.length , mode.length);
-		p.setData(data);
-		return p;
-	}
-	
-	
 	@SuppressWarnings("null")
 	public DatagramPacket removeZero(DatagramPacket p){//Only applicable to RRQ/WRQ
 		int value = 0;
@@ -217,6 +159,21 @@ public class TFTPSim extends TFTPHost {
 		
 		return p;
 	}
+
+	public DatagramPacket changePacket(String newName, String newM, int opC, InetAddress address, int sendPort){
+		byte[] msg = new byte[100], fn, md, data; 
+		DatagramPacket newPacket;
+		fn=newName.getBytes();
+		md=newM.getBytes();
+		
+		//form a request with filename, format, and message type
+		msg=formatRequest(fn,md,opC);
+		len = fn.length+md.length+4;	
+		return newPacket = new DatagramPacket(msg, len,
+                address, sendPort);
+	}
+	
+
 	
 	public void simPrompt() {// menu for choosing errors
 		Scanner sc = new Scanner(System.in);
@@ -308,10 +265,6 @@ public class TFTPSim extends TFTPHost {
 			}
 		}
 		else if(debugChoice==4){
-			
-			boolean loop=true;
-			while(loop)
-			loop=false;
 			packet = selectPacket();
 			if (packet.contains("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to change?");
@@ -320,32 +273,22 @@ public class TFTPSim extends TFTPHost {
 			} else { // request packet
 				actBlock = 0;
 			}
-			System.out.println("Would you like to change the (O)pcode?(F)ilename?(M)ode?");
-			num = sc.next();
-			if(num.contains("O")||num.contains("o")){
+			if(actBlock == 0){	
+					System.out.println("Enter new Opcode");
+					newOpcode = sc.next();
+				    opcodeC = Integer.parseInt(newOpcode);
+				
+					System.out.println("Enter new Filename");
+					newFileName = sc.next();				
+				
+					System.out.println("Enter new Mode");
+					newMode = sc.next();
+			}
+			else{
 				System.out.println("Enter new Opcode");
 				newOpcode = sc.next();
 			    opcodeC = Integer.parseInt(newOpcode);
 			}
-			else if(num.contains("F")||num.contains("f")){
-				System.out.println("Enter new Filename");
-				newFileName = sc.next();				
-			}
-			else if(num.contains("M")||num.contains("m")){
-				System.out.println("Enter new Mode");
-				newMode = sc.next();
-			}
-			System.out.println("Are you sure you want to make these changes? Y/N");
-			num=sc.next();
-			if(num.contains("n")||num.contains("N")){
-				loop =true;
-			}
-			else{
-				loop=false;
-			}
-			
-			
-			
 		}
 		else if(debugChoice==5){
 			packet = selectPacket();
@@ -360,7 +303,7 @@ public class TFTPSim extends TFTPHost {
 	}
 	
 	public int portChange(int port){
-		System.out.println("Enter the new port that you'd like yo use");
+		System.out.println("Enter the new port that you'd like to use");
 		int newPort=sc.nextInt();
 		return newPort;
 	}
@@ -407,16 +350,16 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("[2]: DATA");
 			}
 			choice = sc.next();
-			if (choice.contains("1")&& readTransfer){
+			if (choice.contains("1") && readTransfer && !clientOrServer){
 				System.out.println("------RRQ SELECTED------");
 				selectionFlag = true;
 			}
-			else if(choice.contains("1")&&!readTransfer){
+			else if(choice.contains("1") && !readTransfer && !clientOrServer){
 				System.out.println("------WRQ SELECTED------");
 				selectionFlag=true;
 			}
 			else if(choice.contains("2")){
-				System.out.println("------ACK SELECTED------");
+				System.out.println("------DATA/ACK SELECTED------");
 				selectionFlag=true;
 			}
 			else {
@@ -1289,7 +1232,7 @@ public class TFTPSim extends TFTPHost {
 
 	}
 	
-	public void opcodePacket(){
+public void opcodePacket(){
 		
 		transferStatus = false;
 		finalMessage = false;
@@ -1307,7 +1250,7 @@ public class TFTPSim extends TFTPHost {
 			System.out.println("Simulator: Waiting for packet.");
 			
 			try {
-				receiveSocket.receive(receivePacket);//wait untill you receive a packet
+				receiveSocket.receive(receivePacket);//wait until you receive a packet
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);
@@ -1337,22 +1280,12 @@ public class TFTPSim extends TFTPHost {
 			if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { //1st block for client request	
 					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					try {
-						if(newFileName!=null){
-							sendPacket = changeFileName(sendPacket,newFileName);
-						}
-						else if(newOpcode!=null){
-							sendPacket.getData()[1] = (byte)opcodeC;
-						}
-						else if(newMode!=null){
-							sendPacket = changeMode(sendPacket,newMode);
-						}
-						
+						sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());						
 						sendReceiveSocket.send(sendPacket);
 					} catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
 					}
-					System.out.println("Would you like to act on another block?");//TODO we should implement something like this throughout the code
 				firstTransfer = false;
 			}
 
@@ -1360,11 +1293,7 @@ public class TFTPSim extends TFTPHost {
 				
 					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					try {
-						
-						if(newOpcode!=null){
-							sendPacket.getData()[1] = (byte)opcodeC;
-						}
-																		
+						sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());						
 						sendReceiveSocket.send(sendPacket);
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -1428,16 +1357,7 @@ public class TFTPSim extends TFTPHost {
 				if ((actBlock == 0 && (firstTransfer) && clientOrServer)) { //1st block for serverOperations
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
-							if(newFileName!=null){
-								sendPacket = changeFileName(sendPacket,newFileName);
-							}
-							else if(newOpcode!=null){
-								sendPacket.getData()[1] = (byte)opcodeC;
-							}
-							else if(newMode!=null){
-								sendPacket = changeMode(sendPacket,newMode);
-							}
-							
+							sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());	
 							sendReceiveSocket.send(sendPacket);
 						} catch (IOException e) {
 							e.printStackTrace();
@@ -1450,16 +1370,7 @@ public class TFTPSim extends TFTPHost {
 				else if ((actBlock == parseBlock(sendPacket.getData()) && clientOrServer)) { //nth block of server side operations
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
-							if(newFileName!=null){
-								sendPacket = changeFileName(sendPacket,newFileName);
-							}
-							else if(newOpcode!=null){
-								sendPacket.getData()[1] = (byte)opcodeC;
-							}
-							else if(newMode!=null){
-								sendPacket = changeMode(sendPacket,newMode);
-							}
-							
+							sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());	
 							sendSocket.send(sendPacket);
 						} catch (IOException e) {
 							e.printStackTrace();

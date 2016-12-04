@@ -271,6 +271,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     public void read() { //first packet sent should be data01
         BufferedInputStream in;
         try {
+        	System.out.println("testerror1");
             in = new BufferedInputStream(new FileInputStream (DESKTOP+filename));
             super.read(in, sendReceiveSocket, receivePacket.getPort());
         } 
@@ -330,6 +331,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
     public void write() {//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
         BufferedOutputStream out;
         try {
+        	System.out.println("testerror1");
             out = new BufferedOutputStream(new FileOutputStream(DESKTOP+filename));
             super.write(out, sendReceiveSocket, writePort);
         }
