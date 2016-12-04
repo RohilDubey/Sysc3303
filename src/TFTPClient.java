@@ -54,9 +54,9 @@ public class TFTPClient extends TFTPHost{
         else
             sendPort = 23;
 
-        sc.reset();
+        s.reset();
         System.out.println("Please enter a filename");
-        filename=sc.next();
+        filename=s.next();
 
          
         fn=filename.getBytes();
@@ -110,7 +110,7 @@ public class TFTPClient extends TFTPHost{
             	//TODO write has to be fixed so file path is specified to fetch file from
             	// also file has to be saved in desktop/server folder 
             	System.out.println("Where is the file location?");
-                String saveLocation = sc.next();
+                String saveLocation = s.next();
                 
                 File fileLocation = new File(saveLocation+filename);
                 try {
@@ -123,22 +123,28 @@ public class TFTPClient extends TFTPHost{
                         	sendReceiveSocket.setSoTimeout(25000);
                             sendReceiveSocket.receive(receivePacket);
                          
-                        } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
-                        	if(rePrompt()==true){
+                        } catch (SocketTimeoutException e) {
+    						if(rePrompt()==true){
                         		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
-                        		int delayTime = sc.nextInt();    
+                        		int delayTime = s.nextInt();    
                         		System.out.println();  
                         		System.out.println("waiting for: "+delayTime+"ms.");   
-                        		System.out.println();   
-                        		sendReceiveSocket.setSoTimeout(delayTime);
-                        		System.out.println("Waiting to receivce Packet");
-                        		sendReceiveSocket.receive(receivePacket);
                         	}
-                            timeout = true;
-                            if (shutdown) {
-                                System.exit(0);
-                            }
-                        }
+    						else{
+    							try{
+    								sendReceiveSocket.send(sendPacket);	
+    							}
+    							catch (IOException a) {
+    								a.printStackTrace();
+    								System.exit(1);
+    							}
+    						}
+                           		
+    					}
+    					catch (IOException e) {
+    						e.printStackTrace();
+    						System.exit(1);
+    					}		
                     }
                     
                     printIncomingInfo(receivePacket,"Client",verbose);
@@ -184,12 +190,12 @@ public class TFTPClient extends TFTPHost{
             	//here the client doesn't have to wait for ack00 start directly to write
                 try {
                 	System.out.println("Where would you like to save the file?");
-                    String saveLocation = sc.next();
+                    String saveLocation = s.next();
                 	File fileLocation = new File(saveLocation+filename); //Check for proper file path !!!!!
                 	// use trycatch for above to check for proper filepath 
                 
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
-                    write(out,sendReceiveSocket, sendPort);
+                    write(out,sendReceiveSocket, sendPort, sendPacket);
                     out.close();
                 }
                 catch (FileNotFoundException e) {//File Not Found
@@ -227,13 +233,13 @@ public class TFTPClient extends TFTPHost{
         String x;
         System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
         do{
-            x = sc.next();
+            x = s.next();
             if (x.contains("R")||x.contains("r")) {
-                sc.reset();
+                s.reset();
                 this.sendAndReceive(READ);
             }
             else if (x.contains("w")||x.contains("W")) {
-                sc.reset();
+                s.reset();
                 this.sendAndReceive(WRITE);
             }
             else if (x.contains("q")||x.contains("Q")) {
@@ -243,8 +249,8 @@ public class TFTPClient extends TFTPHost{
             }
             else if (x.contains("o")||x.contains("O")) {
                 System.out.println("Would you like to turn off verbose mode? Y/N");
-                x = sc.next();
-                sc.reset();
+                x = s.next();
+                s.reset();
                 if (x.contains("y")||x.contains("Y")) {
                     this.verbose = false;
                 }
@@ -252,8 +258,8 @@ public class TFTPClient extends TFTPHost{
                     this.verbose = true;
                 }
                 System.out.println("Would you like to turn on test mode? Y/N");
-                x = sc.next();
-                sc.reset();
+                x = s.next();
+                s.reset();
                 if (x.contains("y")||x.contains("Y")) {
                     this.run=Mode.TEST;
                 }
@@ -262,8 +268,8 @@ public class TFTPClient extends TFTPHost{
                 }
             }
             System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
-        }while(sc.hasNext()) ;
-        sc.close();
+        }while(s.hasNext()) ;
+        s.close();
 
     }
 

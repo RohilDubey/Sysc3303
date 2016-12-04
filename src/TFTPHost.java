@@ -11,18 +11,20 @@ import java.util.Scanner;
 public class TFTPHost {
 
 	protected boolean shutdown;
-	protected boolean timeout,clientPrompt;
+	protected boolean timeout,clientPrompt, reTransmitFlag;
 	protected byte[] error;
 	protected String message;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
 
 	protected static final String[] mtype = {"nothing", "RRQ", "WRQ", "DATA", "ACK", "ERROR" };
 
-	protected static Scanner sc;
+	protected static Scanner s;
 	protected boolean verbose;
-
+	protected int delayTime;
+	
 	public TFTPHost() {
-		sc = new Scanner(System.in);
+		delayTime = 25000;
+		s = new Scanner(System.in);
 		shutdown = false;
 		verbose = true;
 		timeout = true;
@@ -62,7 +64,7 @@ public class TFTPHost {
 			System.out.println("");
 			System.out.println("ERROR: Invalid opcode value of:"+opcode);
 			System.out.println("");
-			return opcode=5;
+			return opcode=0;
 		}
 		return opcode;
 		
@@ -70,7 +72,7 @@ public class TFTPHost {
 
 	// prints relevent information about an incoming packet
 	protected void printIncomingInfo(DatagramPacket p, String name, boolean verbose) {
-		int opcode =checkOpcode(p);
+		int opcode = checkOpcode(p);
 		if (verbose) {
 			System.out.println(name + ": packet received.");
 			System.out.println("From host: " + p.getAddress());
@@ -87,6 +89,9 @@ public class TFTPHost {
 			else if (opcode == 5){
 				System.out.println("Sending an Error Message!");
 				System.out.println("Block number " + parseBlock(p.getData()));
+			}
+			else if (opcode == 0){
+				System.out.println("Sending an unknown TFTP Message!");
 			}
 			System.out.println();
 		}
@@ -132,6 +137,9 @@ public class TFTPHost {
 				System.out.println("Sending an Error Message!");
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
+			else if (opcode == 0){
+				System.out.println("Sending an unknown TFTP Message!");
+			}
 			System.out.println();
 		}
 	}
@@ -140,7 +148,7 @@ public class TFTPHost {
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
 	 */
-	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck) throws IOException {
+	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP) throws IOException {
 		byte[] resp = new byte[4];
 		resp[0] = 0;
 		resp[1] = 4;
@@ -160,11 +168,10 @@ public class TFTPHost {
 					while(bool)
 					try {
 						System.out.println("testerror5");
-						bool=false;
-					
-						sendReceiveSocket.setSoTimeout(25000);
-						
+						sendReceiveSocket.setSoTimeout(delayTime);	
+						delayTime = 25000;
 						sendReceiveSocket.receive(receivePacket);
+						bool=false;
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
 								printIncomingInfo(receivePacket, "ERROR", verbose);
@@ -173,21 +180,31 @@ public class TFTPHost {
 						}
 					} 
 					catch (SocketTimeoutException e) {
-						bool=true;
-						if(rePrompt()==true){
+						if(rePrompt()){
                     		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
-                    		int delayTime = sc.nextInt();    
+                    		delayTime = s.nextInt();    
                     		System.out.println();  
                     		System.out.println("waiting for: "+delayTime+"ms.");   
-                    		System.out.println();   
-                    		sendReceiveSocket.setSoTimeout(delayTime);
-                    		System.out.println("Waiting to receivce Packet");
-                    		sendReceiveSocket.receive(receivePacket);
+                    		bool= true;
                     	}
+						else{
+							try{
+								sendReceiveSocket.send(sendPacketP);	
+								printOutgoingInfo(sendPacketP, "Write", verbose);
+								bool= true;
+							}
+							catch (IOException a) {
+								a.printStackTrace();
+								System.exit(1);
+							}
+						}
                        		
 					}
+					catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}	
 					}
-				
 				System.out.println("testerror6");
 				port = receivePacket.getPort();
 
@@ -196,36 +213,37 @@ public class TFTPHost {
 				// write the data received and verified on the output file
 				out.write(data, 4, receivePacket.getLength() - 4);
 				System.out.println("testerror7");
-				// copy the block number received in the ack response
+					// copy the block number received in the ack response
 				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
-				  if(simCheck==23){
+				if(simCheck==23){
 	                	sendPacket = new DatagramPacket(resp, resp.length,InetAddress.getLocalHost(), simCheck);
 	                	System.out.println("testerror8");
 	                } else {
 	                	System.out.println("testerror9");
 	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
 	                }
-				
-				try {
-					System.out.println("testerror10");
-					sendReceiveSocket.setSoTimeout(25000);
-					sendReceiveSocket.send(sendPacket);
-					System.out.print(sendPacket.getData());
-				} 
-				catch (SocketException e) {
-					if(rePrompt()==true){
-                		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
-                		int delayTime = sc.nextInt();    
-                		System.out.println();  
-                		System.out.println("waiting for: "+delayTime+"ms.");   
-                		System.out.println();   
-                		sendReceiveSocket.setSoTimeout(delayTime);
-                		System.out.println("Waiting to receivce Packet");
-                		sendReceiveSocket.receive(receivePacket);
-                	}
-                    
-					
+					bool = true;	
+				while (bool){
+					try {
+						System.out.println("testerror10");
+						sendReceiveSocket.setSoTimeout(delayTime);
+						delayTime = 25000;
+						sendReceiveSocket.send(sendPacket);
+						sendPacketP = sendPacket;
+						bool = false;
+						System.out.print(sendPacket.getData());
+					} 
+					catch (SocketException e) {
+						bool= true;
+	                	System.out.println("Socket timed out. Will re-send packet");
+					}				
+					catch (IOException e) {
+						bool= true;
+						e.printStackTrace();
+						System.exit(1);
+					}	
 				}
+				
 				
 				System.out.println("testerror11");
 				printOutgoingInfo(sendPacket, this.toString(), verbose);
@@ -257,7 +275,6 @@ public class TFTPHost {
 		byte[] resp = new byte[4];
 		byte[] message;
 		boolean endFile = false;
-
 		try {
 			System.out.println("testerror12");
 			while (((n = in.read(data)) != -1) || endFile == false) {
@@ -294,15 +311,23 @@ public class TFTPHost {
 					if (n < 512) endFile = true;
 				}
 				// send the data packet
-				try {
-					System.out.println("testerror13");
-					sendReceiveSocket.send(sendPacket);
-				} 
-				catch (IOException e) {
-					e.printStackTrace();
-					System.exit(1);
+				while(timeout){
+					try {
+						System.out.println("testerror13");
+						sendReceiveSocket.send(sendPacket);
+						timeout = false;
+						System.out.print(sendPacket.getData());
+					} 
+					catch (SocketException e) {
+						timeout= true;
+	                	System.out.println("Socket timed out. Will re-send packet");
+					}				
+					catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}	
 				}
-
+				
 				printOutgoingInfo(sendPacket, "Read", verbose);
 
 				// create the receivePacket that should contains the ack or an
@@ -313,13 +338,12 @@ public class TFTPHost {
 				System.out.println("testerror14");
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
-					timeout = false;
 					System.out.println("testerror15");
 					try {
-						
 						sendReceiveSocket.setSoTimeout(25000);
 						System.out.println("testerror16");
 						sendReceiveSocket.receive(receivePacket);
+						timeout = false;
 						System.out.println("testerror17");
 						if (!validate(receivePacket)) {
 							if (!parseErrorPacket(receivePacket)) {
@@ -329,19 +353,31 @@ public class TFTPHost {
 						}
 					} 
 					catch (SocketTimeoutException e) {
-						if(rePrompt()==true){
+						if(rePrompt()){
                     		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
-                    		int delayTime = sc.nextInt();    
+                    		int delayTime = s.nextInt();    
                     		System.out.println();  
                     		System.out.println("waiting for: "+delayTime+"ms.");   
-                    		System.out.println();   
-                    		sendReceiveSocket.setSoTimeout(delayTime);
-                    		System.out.println("Waiting to receivce Packet");
-                    		sendReceiveSocket.receive(receivePacket);
+                    		timeout = true;
                     	}
-                        
-						
+						else{
+							try{
+								timeout = true;
+								sendReceiveSocket.send(sendPacket);	
+								System.out.println("Re-sent last packet.");
+							}
+							catch (IOException a) {
+								a.printStackTrace();
+								System.exit(1);
+							}
+						}
+                       		
 					}
+					catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}		
+				}
 					printIncomingInfo(receivePacket, "Read", verbose);
 					System.out.println("testerror17");
 					// check if the ack corresponds to the data sent just before
@@ -355,7 +391,6 @@ public class TFTPHost {
 		        		System.out.println("testerror17");
 		        		sendReceiveSocket.send(sendPacket);
 					}
-				}
 				System.out.println("Read : File transfer ends");
 			}
 		}
@@ -515,28 +550,33 @@ public class TFTPHost {
 	}// checkPort() ends
 	
 	 public boolean rePrompt(){//TODO A1
-		 	Scanner s= new Scanner(System.in);
-	    	boolean waiting =false;
+		 boolean waiting = false;	
+		 boolean bool = true;
 	    	String x;
-	        System.out.println("Would you like to re-transmit Y/N? or (W)ait");
-	        x = s.next();
-	        if (x.contains("Y")||x.contains("y")) {
-	            s.reset();
-	            TFTPClient c = new TFTPClient();
-	            c.promptUser();
+	    	System.out.println("Would you like to re-transmit [Y]/[N]? or [W]ait");
+	        while(bool){
+		        x = s.next();	
+	        	if (x.contains("Y")||x.contains("y")) {
+			         waiting = false;
+			         bool = false;	
+		        }
+		        else if(x.contains("N")|| x.contains("n")){  
+		        		bool = false;
+		            	System.out.println("system closing");
+		            	System.exit(0);
+		            }
+		        else if(x.contains("W")||x.contains("w")){
+		        	
+		        	waiting= true;
+		        	bool = false;
+		        }
+		        else{
+		        	System.out.println("Invalid character detected");
+		        	System.out.println("Would you like to re-transmit Y/N? or (W)ait");
+		        	}	
 	        }
-	        else if(x.contains("N")|| x.contains("n")){  
-	            	System.out.println("system closing");
-	            }
-	        else if(x.contains("W")||x.contains("w")){
-	        	
-	        	waiting=true;
-	        }
-	        else{
-	        	System.out.println("Invalid character detected");
-	        	rePrompt();
-	        	}
-	        s.close();
+	        
+	        s.reset();
 	        return waiting;
 	        }
 	 

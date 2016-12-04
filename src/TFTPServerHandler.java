@@ -275,116 +275,22 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
             in = new BufferedInputStream(new FileInputStream (DESKTOP+filename));
             super.read(in, sendReceiveSocket, receivePacket.getPort());
         } 
-        catch (FileNotFoundException e) {//File Not Found
-            error = createErrorByte((byte)1, "Failed to read the " + filename + ". CODE 0501.");
-            //Send error packet
-            sendPacket = new DatagramPacket(error, error.length,
-            receivePacket.getAddress(), receivePacket.getPort());
-            printOutgoingInfo(sendPacket,"Server",verbose);
-		    try {
-			   sendReceiveSocket.send(sendPacket);
-			}
-		    catch (IOException d) {
-			       d.printStackTrace();
-			       System.exit(1);
-			}
-		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-		    System.out.println();
-        } 
-        catch (AccessControlException a){
-        	error = createErrorByte((byte)2, "Cannot read " + filename + ". ACCESS VIOLATION: CODE: 0502"); 
-            //Send error packet
-            sendPacket = new DatagramPacket(error, error.length,
-            receivePacket.getAddress(), receivePacket.getPort());
-            printOutgoingInfo(sendPacket,"Server",verbose);
-		    try {
-			   sendReceiveSocket.send(sendPacket);
-			}
-		    catch (IOException d) {
-			       d.printStackTrace();
-			       System.exit(1);
-			}
-		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-		    System.out.println();
-        }
         catch (IOException e) {
-        	error = createErrorByte((byte)3, "Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");   			  			
-			//Create Error Packet
-    		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());  
-    		System.out.println("Ha");
-    		System.out.println("There is an error, encountered.");
-        	System.out.println("Sending packet.....");
-			//Send Error Packet
-        	printOutgoingInfo(sendPacket,"Server",verbose);
-       	    try {
-    	           sendReceiveSocket.send(sendPacket);
-    	        }
-       	    catch (IOException d) {
-    	        	d.printStackTrace();
-    	            System.exit(1);
-    	    }
-    	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-    	    System.out.println();
+    	    e.printStackTrace();
+    	    System.exit(1);	
         }
-    }
+    }	
 
     public void write() {//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
         BufferedOutputStream out;
         try {
         	System.out.println("testerror1");
             out = new BufferedOutputStream(new FileOutputStream(DESKTOP+filename));
-            super.write(out, sendReceiveSocket, writePort);
-        }
-        catch (FileNotFoundException e) {//File Not Found
-            error = createErrorByte((byte)1, "Failed to read the " + filename + ". CODE 0501.");
-            //Send error packet
-            sendPacket = new DatagramPacket(error, error.length,
-            receivePacket.getAddress(), receivePacket.getPort());
-            printOutgoingInfo(sendPacket,"Server",verbose);
-		    try {
-			   sendReceiveSocket.send(sendPacket);
-			}
-		    catch (IOException d) {
-			       d.printStackTrace();
-			       System.exit(1);
-			}
-		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-		    System.out.println();
-        } 
-        catch (AccessControlException a){
-        	error = createErrorByte((byte)2, "Cannot read " + filename + ". ACCESS VIOLATION: CODE: 0502"); 
-            //Send error packet
-            sendPacket = new DatagramPacket(error, error.length,
-            receivePacket.getAddress(), receivePacket.getPort());
-            printOutgoingInfo(sendPacket,"Server",verbose);
-		    try {
-			   sendReceiveSocket.send(sendPacket);
-			}
-		    catch (IOException d) {
-			       d.printStackTrace();
-			       System.exit(1);
-			}
-		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-		    System.out.println();
+            super.write(out, sendReceiveSocket, writePort, sendPacket);
         }
         catch (IOException e) {
-        	error = createErrorByte((byte)3, "Not enough space to write this " + filename + ". DISK FULL OR ALLOCATION EXCEEDED CODE: 0503");   			  			
-			//Create Error Packet
-    		sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());  
-    		System.out.println("Ha");
-    		System.out.println("There is an error, encountered.");
-        	System.out.println("Sending packet.....");
-			//Send Error Packet
-        	printOutgoingInfo(sendPacket,"Server",verbose);
-       	    try {
-    	           sendReceiveSocket.send(sendPacket);
-    	        }
-       	    catch (IOException d) {
-    	        	d.printStackTrace();
-    	            System.exit(1);
-    	    }
-    	    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-    	    System.out.println();
+        	e.printStackTrace();
+            System.exit(1);
         }
     }
 }

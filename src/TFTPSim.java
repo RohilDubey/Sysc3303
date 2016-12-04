@@ -27,7 +27,7 @@ public class TFTPSim extends TFTPHost {
 	// clientOrServer true = server, false = client
 	private boolean clientOrServer,selectionFlag;
 	private byte[] data;
-	
+	private Scanner sx = new Scanner(System.in);
 
 	// responses for valid requests
 	public static final int MAXLENGTH = 516;
@@ -71,7 +71,7 @@ public class TFTPSim extends TFTPHost {
 	
 	
 	public void simPrompt() {// menu for choosing errors
-		Scanner sc = new Scanner(System.in);
+		Scanner s = new Scanner(System.in);
 		String choice;
 		Boolean loop = true;// if the choice is valid, loop becomes false and we
 							// won't need to re-choose
@@ -83,7 +83,7 @@ public class TFTPSim extends TFTPHost {
 			System.out.println("Enter 3: Duplicate a Packet");
 			System.out.println("Enter 4: Invalid TFTP Operation");
 			System.out.println("Enter 5: Unknown port");
-			choice = sc.next();
+			choice = sx.next();
 			if (choice.contains("0")) {// normal operation
 				System.out.println("Normal Operation Selected");
 				loop = false;
@@ -129,7 +129,7 @@ public class TFTPSim extends TFTPHost {
 			packet = selectPacket();
 			if (packet.contains("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to lose?");
-				num = sc.next();
+				num = sx.next();
 				actBlock = Integer.parseInt(num);
 			} 
 			else { // request packet
@@ -140,10 +140,10 @@ public class TFTPSim extends TFTPHost {
 			packet = selectPacket();
 			if (packet.contains("2")) { // specific block (data/ack) 
 				System.out.println("Which block would you like to delay?");
-				num = sc.next();
+				num = sx.next();
 				System.out.println("How long do you want to delay the block?");
-				sc.reset();
-				delay = sc.nextInt();
+				sx.reset();
+				delay = sx.nextInt();
 				actBlock = Integer.parseInt(num);
 			} else { // request packet
 				actBlock = 0;
@@ -153,7 +153,7 @@ public class TFTPSim extends TFTPHost {
 			packet = selectPacket();
 			if (packet.contains("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to duplicate?");
-				num = sc.next();
+				num = sx.next();
 				actBlock = Integer.parseInt(num);
 			} else { // request packet
 				actBlock = 0;
@@ -163,25 +163,25 @@ public class TFTPSim extends TFTPHost {
 			packet = selectPacket();
 			if (packet.contains("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to change?");
-				num = sc.next();
+				num = sx.next();
 				actBlock = Integer.parseInt(num);
 			} else { // request packet
 				actBlock = 0;
 			}
 			if(actBlock == 0){	
 					System.out.println("Enter new Opcode");
-					newOpcode = sc.next();
+					newOpcode = sx.next();
 				    opcodeC = Integer.parseInt(newOpcode);
 				
 					System.out.println("Enter new Filename");
-					newFileName = sc.next();				
+					newFileName = sx.next();				
 				
 					System.out.println("Enter new Mode");
-					newMode = sc.next();
+					newMode = sx.next();
 			}
 			else{
 				System.out.println("Enter new Opcode");
-				newOpcode = sc.next();
+				newOpcode = sx.next();
 			    opcodeC = Integer.parseInt(newOpcode);
 			}
 		}
@@ -189,7 +189,7 @@ public class TFTPSim extends TFTPHost {
 			packet = selectPacket();
 			if (packet.contains("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to change?");
-				num = sc.next();
+				num = sx.next();
 				actBlock = Integer.parseInt(num);
 			} else { // request packet
 				actBlock = 0;
@@ -199,7 +199,7 @@ public class TFTPSim extends TFTPHost {
 	
 	public int portChange(int port){
 		System.out.println("Enter the new port that you'd like to use");
-		int newPort=sc.nextInt();
+		int newPort=sx.nextInt();
 		return newPort;
 	}
 
@@ -219,12 +219,11 @@ public class TFTPSim extends TFTPHost {
 	}
 
 	public String selectPacket() {
-		Scanner sc = new Scanner(System.in);
 		readTransfer = checkRequest();
 		String choice;
 		do {
 			System.out.println("Would you like to act on the [S]erver or [C]lient?");
-			choice = sc.next();
+			choice = sx.next();
 			if (choice.contains("S") || choice.contains("s")) {
 				clientOrServer = true;
 				selectionFlag = true;
@@ -234,17 +233,17 @@ public class TFTPSim extends TFTPHost {
 			}
 		} while (!selectionFlag);
 		selectionFlag = false;
-		sc.reset();
+		sx.reset();
 		System.out.println("Which packet type would you like to act on?");
 		do {
 			if (readTransfer) {
 				System.out.println("[1]: RRQ");
-				System.out.println("[2]: ACK");
+				System.out.println("[2]: DATA/ACK");
 			} else {
 				System.out.println("[1]: WRQ");
-				System.out.println("[2]: DATA");
+				System.out.println("[2]: DATA/ACK");
 			}
-			choice = sc.next();
+			choice = sx.next();
 			if (choice.contains("1") && readTransfer && !clientOrServer){
 				System.out.println("------RRQ SELECTED------");
 				selectionFlag = true;
@@ -255,6 +254,12 @@ public class TFTPSim extends TFTPHost {
 			}
 			else if(choice.contains("2")){
 				System.out.println("------DATA/ACK SELECTED------");
+				if(clientOrServer){
+					System.out.println("------SERVER------");
+				}
+				else{
+					System.out.println("------CLIENT------");
+				}
 				selectionFlag=true;
 			}
 			else {
@@ -1173,10 +1178,10 @@ public class TFTPSim extends TFTPHost {
 			}
 			// Debug options for Client
 			if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { //1st block for client request	
-					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					try {
 						sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());						
 						sendReceiveSocket.send(sendPacket);
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
 					} catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
@@ -1185,11 +1190,10 @@ public class TFTPSim extends TFTPHost {
 			}
 
 			else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { //nth block of client request
-				
-					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					try {
 						sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());						
 						sendReceiveSocket.send(sendPacket);
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
 					} catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
@@ -1218,16 +1222,15 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("Simulator: Waiting for packet.");
 				try {
 					sendReceiveSocket.receive(receivePacket);
+					printIncomingInfo(receivePacket, "Simulator", verbose);
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
 				}
 				
 				serverPort = receivePacket.getPort();
-				printIncomingInfo(receivePacket, "Simulator", verbose);
 				len = receivePacket.getLength();
 				sendPacket = new DatagramPacket(data, receivePacket.getLength(), receivePacket.getAddress(),clientPort);
-				printOutgoingInfo(sendPacket, "Simulator", verbose);
 				len = sendPacket.getLength();
 
 				// Send the datagram packet to the client via a new socket.
@@ -1250,10 +1253,10 @@ public class TFTPSim extends TFTPHost {
 				}
 				// Debug options for Server
 				if ((actBlock == 0 && (firstTransfer) && clientOrServer)) { //1st block for serverOperations
-						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
 							sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());	
 							sendReceiveSocket.send(sendPacket);
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
 						} catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
@@ -1267,6 +1270,7 @@ public class TFTPSim extends TFTPHost {
 						try {
 							sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());	
 							sendSocket.send(sendPacket);
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
 						} catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
@@ -1278,9 +1282,9 @@ public class TFTPSim extends TFTPHost {
 					}
 				} 
 				else {
-					printOutgoingInfo(sendPacket, "Simulator", verbose);
 					try {
 						sendSocket.send(sendPacket);
+						printOutgoingInfo(sendPacket, "Simulator", verbose);
 					} catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
@@ -1346,11 +1350,11 @@ public class TFTPSim extends TFTPHost {
 	}
 
 	public static void main(String args[]) {
-		TFTPSim s = new TFTPSim();
-		s.promptCheck=true;
-		s.simPrompt();
-		s.filter();
-		sc.close();
+		TFTPSim t = new TFTPSim();
+		t.promptCheck=true;
+		t.simPrompt();
+		t.filter();
+		s.close();
 		
 	}
 }
