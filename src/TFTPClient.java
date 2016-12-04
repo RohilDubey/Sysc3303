@@ -215,12 +215,10 @@ public class TFTPClient extends TFTPHost{
      * formatRequest takes a filename and a format and an opcode (which corresponds to read or write)
      * and formats them into a correctly formatted request
      */
-    public boolean rePrompt(){//TODO A1
+    public boolean rePrompt(){
     	return super.rePrompt();
         }
        
-        
-    
 
     public void promptUser(){
 
