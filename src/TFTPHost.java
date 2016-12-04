@@ -157,6 +157,7 @@ public class TFTPHost {
 	 * it waits for data on the socket and writes it to the file
 	 */
 
+	
 	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP) throws IOException, AlreadyExistsException, WriteAccessException {
 
 		byte[] resp = new byte[4];
@@ -377,7 +378,7 @@ public class TFTPHost {
 
 				// create the receivePacket that should contains the ack or an
 				// error
-
+				System.out.println("RECEIVE!!!!!!");
 				receivePacket = new DatagramPacket(resp, 4);
 
 				timeout = true;

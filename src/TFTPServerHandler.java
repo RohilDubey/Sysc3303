@@ -213,6 +213,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         	if(file.exists()){
 				throw new AlreadyExistsException(filename + "already exists in the directory: " + DESKTOP + "\\" + parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())) +".");
 			}
+        	System.out.println("HERE");
         	out = new BufferedOutputStream(new FileOutputStream(DESKTOP+filename));
             super.write(out, sendReceiveSocket, writePort, sendPacket);
 			
