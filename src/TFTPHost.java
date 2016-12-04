@@ -176,11 +176,9 @@ public class TFTPHost {
 				// copy the block number received in the ack response
 				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
 				  if(simCheck==23){
-	                	sendPacket = new DatagramPacket(resp, resp.length,
-	                			InetAddress.getLocalHost(), simCheck);
+	                	sendPacket = new DatagramPacket(resp, resp.length,InetAddress.getLocalHost(), simCheck);
 	                } else {
-	                	sendPacket = new DatagramPacket(resp, resp.length,
-	                            receivePacket.getAddress(), receivePacket.getPort());
+	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
 	                }
 				
 				try {
@@ -487,12 +485,13 @@ public class TFTPHost {
 	}// checkPort() ends
 	
 	 public boolean rePrompt(){//TODO A1
+		 	Scanner s= new Scanner(System.in);
 	    	boolean waiting =false;
 	    	String x;
 	        System.out.println("Would you like to re-transmit Y/N? or (W)ait");
-	        x = sc.next();
+	        x = s.next();
 	        if (x.contains("Y")||x.contains("y")) {
-	            sc.reset();
+	            s.reset();
 	            TFTPClient c = new TFTPClient();
 	            c.promptUser();
 	        }
@@ -500,12 +499,14 @@ public class TFTPHost {
 	            	System.out.println("system closing");
 	            }
 	        else if(x.contains("W")||x.contains("w")){
+	        	
 	        	waiting=true;
 	        }
 	        else{
 	        	System.out.println("Invalid character detected");
 	        	rePrompt();
 	        	}
+	        s.close();
 	        return waiting;
 	        }
 	 
