@@ -13,6 +13,9 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class TFTPHost {
@@ -30,6 +33,7 @@ public class TFTPHost {
 
 	// Server folder location
     protected static final String DESKTOP = "C:/temp/Server/";
+    protected static final String DELETE = "C:/temp/";
 
 	protected int delayTime;
 
@@ -102,8 +106,10 @@ public class TFTPHost {
 				System.out.println("Block number " + (parseBlock(p.getData())-1));
 			}
 			else if (opcode == 5){
-				System.out.println("Recieving an Error Message!");	
-				System.out.println("Block number " + parseBlock(p.getData()));
+				System.out.println("Recieving an Error Message!");
+				if(!parseErrorPacket(p)){
+					System.exit(0);
+				}
 			}
 			else if (opcode == 0){
 				System.out.println("Sending an unknown TFTP Message!");
@@ -151,8 +157,10 @@ public class TFTPHost {
 				System.out.println("Block number " + (parseBlock(p.getData())-1));
 			}	
 			else if (opcode == 5) {
-				System.out.println("Sending an Error Message!");
-				System.out.println("Block number " + parseBlock(p.getData()));
+				System.out.println("Sending an Error Message!");				
+				if(!parseErrorPacket(p)){
+					System.exit(0);
+				}				
 			}
 			else if (opcode == 0){
 				System.out.println("Sending an unknown TFTP Message!");
@@ -193,10 +201,7 @@ public class TFTPHost {
 						sendReceiveSocket.receive(receivePacket);
 						bool=false;
 						if (!validate(receivePacket)) {
-							if (!parseErrorPacket(receivePacket)) {
-								printIncomingInfo(receivePacket, "ERROR", verbose);
-								System.exit(0);
-							}
+							printIncomingInfo(receivePacket, "ERROR", verbose);
 						}
 					} 
 					
@@ -379,10 +384,7 @@ public class TFTPHost {
 						System.out.println("testerror17");
 
 						if (!validate(receivePacket)) {
-							if (!parseErrorPacket(receivePacket)) {
-								printIncomingInfo(receivePacket, "ERROR", true);
-								System.exit(0);
-							}
+							printIncomingInfo(receivePacket, "ERROR", true);
 						}
 					} 
 					catch (SocketTimeoutException x) {

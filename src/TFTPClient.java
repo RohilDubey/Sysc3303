@@ -116,13 +116,13 @@ public class TFTPClient extends TFTPHost{
                 String saveLocation = sc.next();
 
                 File fileLocation = new File(saveLocation+filename);
-                //Path path = Paths.get(saveLocation + filename);
+                Path path = Paths.get(saveLocation + filename);
                 try {
-                	/*
-                	if(!fileLocation.canWrite()){
+                	
+                	if(!Files.isWritable(path)){
             			System.out.println("Helloa");
             			throw new WriteAccessException("Cannot write: " + filename);      
-            		}	*/
+            		}
                 	
                     byte[] resp = new byte[4];
                     receivePacket = new DatagramPacket(resp,4);
@@ -179,7 +179,7 @@ public class TFTPClient extends TFTPHost{
                             System.exit(0);
                         }
                     }
-                } /*
+                } 
                 catch(FileNotFoundException f){
                 	error = createErrorByte((byte)1, filename + "not found. CODE 0501.");
                 	//Send error packet
@@ -211,7 +211,7 @@ public class TFTPClient extends TFTPHost{
         		    System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
         		    System.out.println();
         		    System.exit(1);
-                }*/
+                }
                 catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);
