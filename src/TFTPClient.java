@@ -3,7 +3,7 @@
 //UDP/IP. The client uses one port and sends a read or write request and gets 
 //the appropriate response from the server.  No actual file transfer takes place.
 //based on SampleSolution for assignment1 given the Sept 19th,2016
-
+import java.net.InetAddress;
 import java.io.*;
 import java.net.*;
 import java.nio.file.Files;
@@ -269,6 +269,8 @@ public class TFTPClient extends TFTPHost{
   
    public void promptUser() throws AlreadyExistsException, UnknownHostException, WriteAccessException{
         String x;
+       
+        
         System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
         do{
             x = sc.next();
@@ -314,10 +316,13 @@ public class TFTPClient extends TFTPHost{
                     this.run=Mode.NORMAL;
                 }
                 System.out.println("What is the new port of the server?");
+                System.out.println("Chose 69 for normal function");
                 while (!sc.hasNextInt()) sc.next();
                 nPort = sc.nextInt();
                 sc.reset();
                 System.out.println("What is the new InetAddress of the server?");
+                InetAddress ip = InetAddress.getLocalHost();
+                System.out.println("Your ip is: "+ip.getHostAddress() );
                 x = sc.next();
                 sendAddress = InetAddress.getByName(x);
                 sc.reset();

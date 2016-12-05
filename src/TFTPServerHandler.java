@@ -168,7 +168,10 @@ import java.util.List;
 				e.printStackTrace();
 			}
         }
-        System.out.println("File transfer finished => server handler close");
+        System.out.println("File transfer finished");
+        System.out.println("Waiting on next transfer...");
+        
+        
         sendReceiveSocket.close();
         Thread.currentThread().interrupt();
         return;
