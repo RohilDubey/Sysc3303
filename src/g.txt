@@ -1,0 +1,73 @@
+public void blockSelection(){
+		String num;		
+		if(debugChoice==1){
+			packet = selectPacket();
+			if (packet.contains("2")) { // specific block (data/ack)
+				System.out.println("Which block would you like to lose?");
+				num = sx.next();
+				actBlock = Integer.parseInt(num);
+			} 
+			else { // request packet
+				actBlock = 0;
+			}
+		}
+		else if(debugChoice==2){
+			packet = selectPacket();
+			if (packet.contains("2")) { // specific block (data/ack) 
+				System.out.println("Which block would you like to delay?");
+				num = sx.next();
+				System.out.println("How long do you want to delay the block?");
+				sx.reset();
+				delay = sx.nextInt();
+				actBlock = Integer.parseInt(num);
+			} else { // request packet
+				actBlock = 0;
+			}
+		}
+		else if(debugChoice==3){
+			packet = selectPacket();
+			if (packet.contains("2")) { // specific block (data/ack)
+				System.out.println("Which block would you like to duplicate?");
+				num = sx.next();
+				actBlock = Integer.parseInt(num);
+			} else { // request packet
+				actBlock = 0;
+			}
+		}
+		else if(debugChoice==4){
+			packet = selectPacket();
+			if (packet.contains("2")) { // specific block (data/ack)
+				System.out.println("Which block would you like to change?");
+				num = sx.next();
+				actBlock = Integer.parseInt(num);
+			} else { // request packet
+				actBlock = 0;
+			}
+			if(actBlock == 0){	
+					System.out.println("Enter new Opcode");
+					newOpcode = sx.next();
+				    opcodeC = Integer.parseInt(newOpcode);
+				
+					System.out.println("Enter new Filename");
+					newFileName = sx.next();				
+				
+					System.out.println("Enter new Mode");
+					newMode = sx.next();
+			}
+			else{
+				System.out.println("Enter new Opcode");
+				newOpcode = sx.next();
+			    opcodeC = Integer.parseInt(newOpcode);
+			}
+		}
+		else if(debugChoice==5){
+			packet = selectPacket();
+			if (packet.contains("2")) { // specific block (data/ack)
+				System.out.println("Which block would you like to change?");
+				num = sx.next();
+				actBlock = Integer.parseInt(num);
+			} else { // request packet
+				actBlock = 0;
+			}
+		}
+	}
