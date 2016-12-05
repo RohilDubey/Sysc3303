@@ -219,6 +219,11 @@ public class TFTPSim extends TFTPHost {
 			}
 			else if(choice.equals("4")){
 				System.out.println("Invalid TFTP operation selected");
+				System.out.println("Would you like to modify a 0? Y/N");
+				String choice1 =sc.next();
+				if(choice1.contains("Y")||choice1.contains("y")){
+					loseZero=true;
+				}
 				debugChoice =4;
 				loop=false;				
 			}
