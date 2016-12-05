@@ -43,7 +43,8 @@ public class TFTPClient extends TFTPHost{
         run=Mode.NORMAL;
     }
 
-    public void sendAndReceive(int type) throws AlreadyExistsException, UnknownHostException, WriteAccessException
+    public void sendAndReceive(int type) throws AlreadyExistsException, UnknownHostException, WriteAccessException//for sending and receiving stuff, 
+    //directs traffic to other methods in serverHandler and begins the transfer process
     {
         byte[] msg = new byte[100], // message we send
         fn, // filename as an array of bytes
@@ -132,6 +133,9 @@ public class TFTPClient extends TFTPHost{
                         } catch (SocketTimeoutException e) {
     						if(rePrompt()==true){
                         		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                        		/*
+                        		 *  A wait time of 0 is infinite 
+                        		 */
                         		int delayTime = sc.nextInt();    
                         		System.out.println();  
                         		System.out.println("waiting for: "+delayTime+"ms.");   
@@ -154,7 +158,6 @@ public class TFTPClient extends TFTPHost{
                     }
                     /*
                     if(!Files.isWritable(path) && fileLocation.getUsableSpace() < receivePacket.getLength()){
-                    	System.out.println("HERE");
                     	throw new DiskIsFullException("Disk is full or allocation is exceeded.");       
             		}*/
                     
@@ -311,11 +314,11 @@ public class TFTPClient extends TFTPHost{
      * formatRequest takes a filename and a format and an opcode (which corresponds to read or write)
      * and formats them into a correctly formatted request
      */
-    public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
+    public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//super call to rePrompt
     	return super.rePrompt();
     }
   
-    public void promptUser() throws AlreadyExistsException, UnknownHostException, WriteAccessException{
+    public void promptUser() throws AlreadyExistsException, UnknownHostException, WriteAccessException{//Initial prompt for the client to start the whole thing off
 
         String x;
         System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
@@ -360,8 +363,8 @@ public class TFTPClient extends TFTPHost{
 
     }
 
-    public static void main(String args[]) throws AlreadyExistsException, UnknownHostException, WriteAccessException
-    {
+    public static void main(String args[]) throws AlreadyExistsException, UnknownHostException, WriteAccessException{//Main
+    
         TFTPClient c = new TFTPClient();
         c.promptUser();
     }
