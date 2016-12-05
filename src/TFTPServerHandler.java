@@ -228,7 +228,7 @@ import java.util.List;
 				throw new AlreadyExistsException(filename + "already exists in the directory: " + DESKTOP + "\\" + parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())) +".");				
         	}
         	out = new BufferedOutputStream(new FileOutputStream(DESKTOP + "\\" + filename));
-            super.write(out, sendReceiveSocket, writePort, sendPacket, true, null);
+            super.write(out, sendReceiveSocket, writePort, sendPacket, true, DESKTOP + "\\" + filename);
 			
          }
         catch(AlreadyExistsException a){
