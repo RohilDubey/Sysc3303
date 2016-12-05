@@ -159,7 +159,12 @@ public class TFTPHost {
 			}
 			System.out.println();
 		}
+
 	}	
+
+
+	
+ 
 
 	/*
 	 * write takes a file outputstream and a communication socket as arguments
@@ -190,6 +195,7 @@ public class TFTPHost {
 						System.out.println("testerror5");
 						sendReceiveSocket.setSoTimeout(delayTime);	
 						delayTime = 25000;
+
 						sendReceiveSocket.receive(receivePacket);
 						bool=false;
 						if (!validate(receivePacket)) {
@@ -247,6 +253,24 @@ public class TFTPHost {
 	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
 	                }
 
+				
+				try {
+					sendReceiveSocket.setSoTimeout(25000);
+					sendReceiveSocket.send(sendPacket);
+					System.out.print(sendPacket.getData());
+				} 
+				catch (SocketException e) {
+					if(rePrompt()==true){
+                		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                		int delayTime = sc.nextInt();    
+                		System.out.println();  
+                		System.out.println("waiting for: "+delayTime+"ms.");   
+                		System.out.println();   
+                		sendReceiveSocket.setSoTimeout(delayTime);
+                		System.out.println("Waiting to receivce Packet");
+                		sendReceiveSocket.receive(receivePacket);
+                	}
+				}
 
 					bool = true;	
 				while (bool){
@@ -341,8 +365,16 @@ public class TFTPHost {
 						endFile = true;
 					}
 				}
-				timeout = true;
 				// send the data packet
+
+				try {
+					System.out.println("fuck datagrampackets");
+					sendReceiveSocket.send(sendPacket);
+				} 
+				catch (IOException e) {
+					e.printStackTrace();
+					System.exit(1);
+				}
 				while(timeout){
 					try {
 						System.out.println("testerror13");
