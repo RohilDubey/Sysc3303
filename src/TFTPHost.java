@@ -1,11 +1,18 @@
-import java.io.*;
 //Host.java
 //This class is the parent class of TFTPClient, TFTPSim, TFTPServer containing 
 //the function to print information , common to children.
 //Created by Lisa Martini
 //September 17th, 2016
-
-import java.net.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class TFTPHost {
@@ -84,13 +91,15 @@ public class TFTPHost {
 			int len = p.getLength();
 			System.out.println("Length: " + len);
 			System.out.println("Packet type: " + mtype[opcode]);
-			if (opcode < 3) {
+			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
-				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 3) {
 				System.out.println("Number of bytes: " + (len - 4));
 				System.out.println("Block number " + parseBlock(p.getData()));
+			}
+			else if (opcode == 4){
+				System.out.println("Block number " + (parseBlock(p.getData())-1));
 			}
 			else if (opcode == 5){
 				System.out.println("Recieving an Error Message!");	
@@ -102,7 +111,6 @@ public class TFTPHost {
 			System.out.println();
 		}
 	}
-
     public byte[] formatRequest(byte[] filename, byte[] format, int opcode) {
         int lf = filename.length,lm=format.length;
 
@@ -134,13 +142,14 @@ public class TFTPHost {
 			System.out.println("Packet type: " + mtype[opcode]);
 			if (opcode == 1 || opcode == 2) {
 				System.out.println("Filename: " + parseFilename(new String(p.getData(), 0, len)));
-				System.out.println("Block number " + parseBlock(p.getData()));
 			} 
 			else if (opcode == 3){
 				System.out.println("Number of bytes: " + (len - 4));
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
-			
+			else if (opcode == 4){
+				System.out.println("Block number " + (parseBlock(p.getData())-1));
+			}	
 			else if (opcode == 5) {
 				System.out.println("Sending an Error Message!");
 				System.out.println("Block number " + parseBlock(p.getData()));
@@ -150,7 +159,7 @@ public class TFTPHost {
 			}
 			System.out.println();
 		}
-	}
+	}	
 
 	/*
 	 * write takes a file outputstream and a communication socket as arguments
@@ -314,6 +323,7 @@ public class TFTPHost {
 		byte[] resp = new byte[4];
 		byte[] message;
 		boolean endFile = false;
+		DatagramPacket receivePacket = new DatagramPacket(resp, 4);
 		try {
 			while (((n = in.read(data)) != -1) || endFile == false) {
 				numberblock++;
@@ -353,6 +363,7 @@ public class TFTPHost {
 				// send the data packet
 
 				try {
+					System.out.println("fuck datagrampackets");
 					sendReceiveSocket.send(sendPacket);
 				} 
 				catch (IOException e) {
@@ -378,10 +389,6 @@ public class TFTPHost {
 				
 				printOutgoingInfo(sendPacket, "Read", verbose);
 
-				// create the receivePacket that should contains the ack or an
-				// error
-				
-				receivePacket = new DatagramPacket(resp, 4);
 
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
@@ -393,7 +400,7 @@ public class TFTPHost {
 					try {
 						sendReceiveSocket.setSoTimeout(25000);
 						sendReceiveSocket.receive(receivePacket);
-
+						printIncomingInfo(receivePacket, "Read", verbose);
 
 						timeout = false;
 						System.out.println("testerror17");
@@ -432,7 +439,6 @@ public class TFTPHost {
 					}		
 
 				}
-					printIncomingInfo(receivePacket, "Read", verbose);
 					// check if the ack corresponds to the data sent just before
 					
 				System.out.println("Read : File transfer ends");
@@ -443,7 +449,8 @@ public class TFTPHost {
 			e.printStackTrace();
 			System.exit(1);
 		}
-	}
+	}		
+
 
 	// this function check if a packet is valid : ACK or DATA packet only for
 	// now on . RRQ and WRQ checked on ServerHandler
