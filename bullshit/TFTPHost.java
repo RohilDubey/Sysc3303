@@ -99,7 +99,7 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + (parseBlock(p.getData())));
+				System.out.println("Block number " + (parseBlock(p.getData())-1));
 			}
 			else if (opcode == 5){
 				System.out.println("Recieving an Error Message!");	
@@ -148,7 +148,7 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + (parseBlock(p.getData())));
+				System.out.println("Block number " + (parseBlock(p.getData())-1));
 			}	
 			else if (opcode == 5) {
 				System.out.println("Sending an Error Message!");
@@ -403,7 +403,7 @@ public class TFTPHost {
 					try {
 						sendReceiveSocket.setSoTimeout(25000);
 						sendReceiveSocket.receive(receivePacket);
-
+						printIncomingInfo(receivePacket, "Read", verbose);
 
 						timeout = false;
 						System.out.println("testerror17");
@@ -442,7 +442,6 @@ public class TFTPHost {
 					}		
 
 				}
-					printIncomingInfo(receivePacket, "Read", verbose);
 					// check if the ack corresponds to the data sent just before
 					
 				System.out.println("Read : File transfer ends");
