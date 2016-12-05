@@ -580,8 +580,7 @@ public class TFTPSim extends TFTPHost {
 					e.printStackTrace();
 					System.exit(1);
 				}
-				
-				
+		
 				
 				if (!transferStatus && promptCheck) {//if already prompted 
 					blockSelection(); 
