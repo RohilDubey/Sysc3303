@@ -274,10 +274,18 @@ public class TFTPClient extends TFTPHost{
             x = sc.next();
             if (x.equals("R")||x.equals("r")) {
                 sc.reset();
+                if(sendAddress==null){
+                	System.out.println("Your IP Address was not specified please restart and select one in options");
+                	promptUser();
+                }
                 this.sendAndReceive(READ, nPort, sendAddress);
             }
             else if (x.equals("w")||x.equals("W")) {
                 sc.reset();
+                if(sendAddress==null){
+                	System.out.println("Your IP Address was not specified please restart and select one in options");
+                	promptUser();
+                }
                 this.sendAndReceive(WRITE, nPort, sendAddress);
             }
             else if (x.equals("q")||x.equals("Q")) {
