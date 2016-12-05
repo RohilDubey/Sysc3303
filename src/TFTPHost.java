@@ -1,8 +1,8 @@
 //Host.java
 //This class is the parent class of TFTPClient, TFTPSim, TFTPServer containing 
-//the function to print information , common to children.
-//Created by Lisa Martini
-//September 17th, 2016
+
+
+//imports 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -25,18 +25,14 @@ public class TFTPHost {
 	protected byte[] error;
 	protected String message;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
-
 	protected static final String[] mtype = {"nothing", "RRQ", "WRQ", "DATA", "ACK", "ERROR" };
-
 	protected static Scanner sc;
 	protected boolean verbose;
-
+	
 	// Server folder location
     protected static final String DESKTOP = "C:/temp/Server/";
     protected static final String DELETE = "C:/temp/";
-
 	protected int delayTime;
-
 	public TFTPHost() {
 		delayTime = 25000;
 		sc = new Scanner(System.in);
@@ -85,7 +81,7 @@ public class TFTPHost {
 		
 	}
 
-	// prints relevent information about an incoming packet
+	// prints relevant information about an incoming packet
 	protected void printIncomingInfo(DatagramPacket p, String name, boolean verbose) {
 		int opcode = checkOpcode(p);
 		if (verbose) {
@@ -117,7 +113,8 @@ public class TFTPHost {
 			System.out.println();
 		}
 	}
-    public byte[] formatRequest(byte[] filename, byte[] format, int opcode) {
+   
+	public byte[] formatRequest(byte[] filename, byte[] format, int opcode){
         int lf = filename.length,lm=format.length;
 
         byte [] result=new byte[lf+4+lm];
@@ -173,8 +170,6 @@ public class TFTPHost {
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
 	 */
-
-	
 	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP) throws IOException, AlreadyExistsException, WriteAccessException {
 
 		byte[] resp = new byte[4];
@@ -576,7 +571,8 @@ public class TFTPHost {
 		}
 	}// checkPort() ends
 	 
-	 public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
+	
+	public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
 		 boolean waiting = false;	
 		 boolean bool = true;
 	    	String x;
