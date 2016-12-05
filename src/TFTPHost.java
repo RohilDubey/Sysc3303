@@ -99,7 +99,7 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + (parseBlock(p.getData())-1));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 5){
 				System.out.println("Recieving an Error Message!");	
@@ -148,7 +148,7 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + (parseBlock(p.getData())-1));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}	
 			else if (opcode == 5) {
 				System.out.println("Sending an Error Message!");
