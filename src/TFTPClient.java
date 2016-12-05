@@ -196,22 +196,7 @@ public class TFTPClient extends TFTPHost{
         		    System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
         		    System.out.println();
         		    System.exit(1);
-                }/*
-                catch(DiskIsFullException d){
-                	error = createErrorByte((byte)3, "Disk is full or allocation is exceeded. CODE 0503.");
-                	//Send error packet
-                    sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
-                    printOutgoingInfo(sendPacket,"ERROR",verbose);
-        		    try {
-        			   sendReceiveSocket.send(sendPacket);
-        			}
-        		    catch (IOException f) {
-        			    f.printStackTrace();
-        			    System.exit(1);
-        			}
-        		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-        		    System.out.println();
-                }*/
+                }
                 catch(WriteAccessException wA){
                 	error = createErrorByte((byte)2, "Failed to write the " + filename + ". CODE 0502.");
                 	//Send error packet

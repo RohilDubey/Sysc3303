@@ -31,7 +31,7 @@ public class TFTPHost {
 	protected boolean verbose;
 
 	// Server folder location
-    protected static final String DESKTOP = "C:\\Users\\user\\Desktop\\Server";
+    protected static final String DESKTOP = "C:\\temp\\Server";
     protected static final String USB = "F:\\";
 	protected int delayTime;
 
