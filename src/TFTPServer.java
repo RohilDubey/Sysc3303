@@ -13,7 +13,7 @@ public class TFTPServer {
         System.out.println("Shutdown the server? [Yes|No]");
         x = sc.next();
         // If operator says yes then the server shutdown as threads act independently of the server once created.
-        if (x.contains("Yes")|| x.contains("yes")){
+        if (x.equals("Yes")|| x.equals("yes")){
             System.out.println("Server is now shutting down.");
             sc.reset();
             sc.close();

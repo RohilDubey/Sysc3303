@@ -99,7 +99,7 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + parseBlock(p.getData()));
+				System.out.println("Block number " + (parseBlock(p.getData())-1));
 			}
 			else if (opcode == 5){
 				System.out.println("Recieving an Error Message!");	
@@ -148,7 +148,7 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + parseBlock(p.getData()));
+				System.out.println("Block number " + (parseBlock(p.getData())-1));
 			}	
 			else if (opcode == 5) {
 				System.out.println("Sending an Error Message!");
@@ -581,16 +581,16 @@ public class TFTPHost {
 	    	System.out.println("Would you like to re-transmit [Y]/[N]? or [W]ait");
 	        while(bool){
 		        x = sc.next();	
-	        	if (x.contains("Y")||x.contains("y")) {
+	        	if (x.equals("Y")||x.equals("y")) {
 			         waiting = false;
 			         bool = false;	
 		        }
-		        else if(x.contains("N")|| x.contains("n")){  
+		        else if(x.equals("N")|| x.equals("n")){  
 		        		bool = false;
 		            	System.out.println("system closing");
 		            	System.exit(0);
 		            }
-		        else if(x.contains("W")||x.contains("w")){
+		        else if(x.equals("W")||x.equals("w")){
 		        	
 		        	waiting= true;
 		        	bool = false;

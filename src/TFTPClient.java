@@ -273,36 +273,36 @@ public class TFTPClient extends TFTPHost{
         System.out.println("(R)ead, (w)rite, (o)ptions, or (q)uit?");
         do{
             x = sc.next();
-            if (x.contains("R")||x.contains("r")) {
+            if (x.equals("R")||x.equals("r")) {
                 sc.reset();
                 this.sendAndReceive(READ);
             }
-            else if (x.contains("w")||x.contains("W")) {
+            else if (x.equals("w")||x.equals("W")) {
                 sc.reset();
                 this.sendAndReceive(WRITE);
             }
-            else if (x.contains("q")||x.contains("Q")) {
+            else if (x.equals("q")||x.equals("Q")) {
                 this.sendReceiveSocket.close();
                 System.out.println("Client is Quitting");
                 System.exit(0);
             }
-            else if (x.contains("o")||x.contains("O")) {
+            else if (x.equals("o")||x.equals("O")) {
                 System.out.println("Would you like to turn off verbose mode? Y/N");
                 x = sc.next();
                 sc.reset();
-                if (x.contains("y")||x.contains("Y")) {
+                if (x.equals("y")||x.equals("Y")) {
                     this.verbose = false;
                 }
-                else if (x.contains("n")||x.contains("N")) {
+                else if (x.equals("n")||x.equals("N")) {
                     this.verbose = true;
                 }
                 System.out.println("Would you like to turn on test mode? Y/N");
                 x = sc.next();
                 sc.reset();
-                if (x.contains("y")||x.contains("Y")) {
+                if (x.equals("y")||x.equals("Y")) {
                     this.run=Mode.TEST;
                 }
-                else if (x.contains("n")||x.contains("N")) {
+                else if (x.equals("n")||x.equals("N")) {
                     this.run=Mode.NORMAL;
                 }
             }

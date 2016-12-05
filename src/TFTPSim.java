@@ -84,11 +84,11 @@ public class TFTPSim extends TFTPHost {
 		while(loop2){
 		System.out.println("Would you like to (R)emove or (C)hange the 0?");
 		String dec=sc.next();
-		if(dec.contains("R")||dec.contains("r")){
+		if(dec.equals("R")||dec.equals("r")){
 			remove =true;
 			loop2=false;
 		}
-		else if(dec.contains("c")||dec.contains("C")){
+		else if(dec.equals("c")||dec.equals("C")){
 			System.out.println("What value would you like change it to?");
 			sc.reset();
 			value=sc.nextInt();
@@ -187,34 +187,34 @@ public class TFTPSim extends TFTPHost {
 			System.out.println("Enter 4: Invalid TFTP Operation");
 			System.out.println("Enter 5: Unknown port");
 			choice = sx.next();
-			if (choice.contains("0")) {// normal operation
+			if (choice.equals("0")) {// normal operation
 				System.out.println("Normal Operation Selected");
 				loop = false;
 				debugChoice = 0;
 				actBlock = -1; // Set so none of the if statements go off
 				return; // Just exit out of method in case of normal operation
 			} 
-			else if (choice.contains("1")) {// lose packet
+			else if (choice.equals("1")) {// lose packet
 				System.out.println("Lose packet selected");
 				debugChoice = 1;
 				loop = false;
 			}
-			else if (choice.contains("2")) {// delay packet
+			else if (choice.equals("2")) {// delay packet
 				System.out.println("Delay packet selected");
 				debugChoice = 2;				
 				loop = false;
 			}
-			else if (choice.contains("3")) {// duplicate packet
+			else if (choice.equals("3")) {// duplicate packet
 				System.out.println("Duplicate Packet selected");
 				debugChoice = 3;
 				loop = false;
 			}
-			else if(choice.contains("4")){
+			else if(choice.equals("4")){
 				System.out.println("Invalid TFTP operation selected");
 				debugChoice =4;
 				loop=false;				
 			}
-			else if (choice.contains("5")) {// duplicate packet
+			else if (choice.equals("5")) {// duplicate packet
 				System.out.println("Unknown Port selected");
 				debugChoice = 5;
 				loop = false;
@@ -230,7 +230,7 @@ public class TFTPSim extends TFTPHost {
 		String num;		
 		if(debugChoice==1){
 			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
+			if (packet.equals("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to lose?");
 				num = sx.next();
 				actBlock = Integer.parseInt(num);
@@ -241,7 +241,7 @@ public class TFTPSim extends TFTPHost {
 		}
 		else if(debugChoice==2){
 			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack) 
+			if (packet.equals("2")) { // specific block (data/ack) 
 				System.out.println("Which block would you like to delay?");
 				num = sx.next();
 				System.out.println("How long do you want to delay the block?");
@@ -254,7 +254,7 @@ public class TFTPSim extends TFTPHost {
 		}
 		else if(debugChoice==3){
 			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
+			if (packet.equals("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to duplicate?");
 				num = sx.next();
 				actBlock = Integer.parseInt(num);
@@ -264,7 +264,7 @@ public class TFTPSim extends TFTPHost {
 		}
 		else if(debugChoice==4){
 			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
+			if (packet.equals("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to change?");
 				num = sx.next();
 				actBlock = Integer.parseInt(num); 
@@ -290,7 +290,7 @@ public class TFTPSim extends TFTPHost {
 		}
 		else if(debugChoice==5){
 			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
+			if (packet.equals("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to change?");
 				num = sx.next();
 				actBlock = Integer.parseInt(num);
@@ -327,10 +327,10 @@ public class TFTPSim extends TFTPHost {
 		do {
 			System.out.println("Would you like to act on the [S]erver or [C]lient?");
 			choice = sx.next();
-			if (choice.contains("S") || choice.contains("s")) {
+			if (choice.equals("S") || choice.equals("s")) {
 				clientOrServer = true;
 				selectionFlag = true;
-			} else if (choice.contains("C") || choice.contains("c")) {
+			} else if (choice.equals("C") || choice.equals("c")) {
 				clientOrServer = false;
 				selectionFlag = true;
 			}
@@ -347,15 +347,15 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("[2]: DATA/ACK");
 			}
 			choice = sx.next();
-			if (choice.contains("1") && readTransfer && !clientOrServer){
+			if (choice.equals("1") && readTransfer && !clientOrServer){
 				System.out.println("------RRQ SELECTED------");
 				selectionFlag = true;
 			}
-			else if(choice.contains("1") && !readTransfer && !clientOrServer){
+			else if(choice.equals("1") && !readTransfer && !clientOrServer){
 				System.out.println("------WRQ SELECTED------");
 				selectionFlag=true;
 			}
-			else if(choice.contains("2")){
+			else if(choice.equals("2")){
 				System.out.println("------DATA/ACK SELECTED------");
 				if(clientOrServer){
 					System.out.println("------SERVER------");
