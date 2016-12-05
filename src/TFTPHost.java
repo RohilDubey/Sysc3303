@@ -197,6 +197,8 @@ public class TFTPHost {
 						bool=false;
 						if (!validate(receivePacket)) {
 							printIncomingInfo(receivePacket, "ERROR", verbose);
+							out.close();
+							System.exit(0);
 						}
 					} 
 					
@@ -359,6 +361,8 @@ public class TFTPHost {
 						timeout = false;
 						if (!validate(receivePacket)) {
 							printIncomingInfo(receivePacket, "ERROR", quietToggle);
+							in.close();
+							System.exit(0);
 						}
 					} 
 					catch (SocketTimeoutException x) {
