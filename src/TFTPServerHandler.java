@@ -20,17 +20,18 @@ import java.util.List;
 
 
 
-//Classes Constructor
-public class TFTPServerHandler extends TFTPHost implements Runnable{
-    // Types of receivable requests 
-    public static enum Request { READ, WRITE, ERROR};
+	//Classes Constructor
+	public class TFTPServerHandler extends TFTPHost implements Runnable{
 
-    // responses for valid requests
-    public static final byte[] readResp = {0, 3, 0, 1};
-    public static final byte[] writeResp = {0, 4, 0, 0};
-    
-    //Variable for error flagging
-    public boolean boolError = false;
+	// Types of receivable requests 
+	public static enum Request { READ, WRITE, ERROR};
+
+	// responses for valid requests
+	public static final byte[] readResp = {0, 3, 0, 1};
+	public static final byte[] writeResp = {0, 4, 0, 0};
+
+	//Variable for error flagging
+	public boolean boolError = false;
 	
     //Error Packet
     public DatagramPacket sendErrorPacket;
@@ -60,8 +61,8 @@ public class TFTPServerHandler extends TFTPHost implements Runnable{
     }
 
 	
-    //Checks for any errors and proceeds if there are none 	
-    public void checkFirstMessage(){
+    	//Checks for any errors and proceeds if there are none 	
+    	public void checkFirstMessage(){
         byte[] data=receivePacket.getData(),
         response = new byte[4];
         boolean flag = false;
@@ -175,7 +176,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable{
 
     
     //read method
-    public void read() throws AlreadyExistsException, WriteAccessException { //first packet sent should be data01
+    public void read() throws AlreadyExistsException, WriteAccessException { 
         BufferedInputStream in;      
         File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
         Path path = Paths.get(DESKTOP + filename);
@@ -252,3 +253,6 @@ public class TFTPServerHandler extends TFTPHost implements Runnable{
         	e.printStackTrace();
             System.exit(1);
         }
+    }
+    
+}
