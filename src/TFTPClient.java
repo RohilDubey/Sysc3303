@@ -119,10 +119,6 @@ public class TFTPClient extends TFTPHost{
                 Path path = Paths.get(saveLocation + filename);
                 try {
                 	
-                	if(!Files.isWritable(path)){
-            			System.out.println("Helloa");
-            			throw new WriteAccessException("Cannot write: " + filename);      
-            		}
                 	
                     byte[] resp = new byte[4];
                     receivePacket = new DatagramPacket(resp,4);
@@ -156,13 +152,26 @@ public class TFTPClient extends TFTPHost{
     						System.exit(1);
     					}		
                     }
-                   
+                    /*
+                    if(!Files.isWritable(path) && fileLocation.getUsableSpace() < receivePacket.getLength()){
+                    	System.out.println("HERE");
+                    	throw new DiskIsFullException("Disk is full or allocation is exceeded.");       
+            		}*/
+                    
+                    if(!Files.isWritable(path)){
+                    	System.out.println("FUCKKCK");
+                    	throw new WriteAccessException("Failed to write");
+                    }
+                    
                     printIncomingInfo(receivePacket,"Client",verbose);
+              
                     
                     //Check if error Packet was received
                     if(parseErrorPacket(receivePacket) == true){
                     	System.exit(1);
                     }
+                    
+                    
                     
                     //Not an error Packet
                     else{
@@ -179,12 +188,12 @@ public class TFTPClient extends TFTPHost{
                             System.exit(0);
                         }
                     }
-                } 
+                }                
                 catch(FileNotFoundException f){
                 	error = createErrorByte((byte)1, filename + "not found. CODE 0501.");
                 	//Send error packet
                     sendPacket = new DatagramPacket(error, error.length, InetAddress.getLocalHost(), sendPort);
-                    printOutgoingInfo(sendPacket,"Client",verbose);
+                    printOutgoingInfo(sendPacket,"ERROR",verbose);
         		    try {
         			   sendReceiveSocket.send(sendPacket);
         			}
@@ -195,12 +204,28 @@ public class TFTPClient extends TFTPHost{
         		    System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
         		    System.out.println();
         		    System.exit(1);
-                }
+                }/*
+                catch(DiskIsFullException d){
+                	error = createErrorByte((byte)3, "Disk is full or allocation is exceeded. CODE 0503.");
+                	//Send error packet
+                    sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
+                    printOutgoingInfo(sendPacket,"ERROR",verbose);
+        		    try {
+        			   sendReceiveSocket.send(sendPacket);
+        			   System.out.println("FUCK OFF");
+        			}
+        		    catch (IOException f) {
+        			    f.printStackTrace();
+        			    System.exit(1);
+        			}
+        		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+        		    System.out.println();
+                }*/
                 catch(WriteAccessException wA){
                 	error = createErrorByte((byte)2, "Failed to write the " + filename + ". CODE 0502.");
                 	//Send error packet
                     sendPacket = new DatagramPacket(error, error.length, InetAddress.getLocalHost(), sendPort);
-                    printOutgoingInfo(sendPacket,"Client",verbose);
+                    printOutgoingInfo(sendPacket,"ERROR",verbose);
         		    try {
         			   sendReceiveSocket.send(sendPacket);
         			}
@@ -223,15 +248,22 @@ public class TFTPClient extends TFTPHost{
                 	System.out.println("Where would you like to save the file?");
 
                 	
-                    String saveLocation = sc.next();/*
-                    if(file.exists()){
-                		throw new AlreadyExistsException(filename + "already exists in the directory: " + saveLocation + filename + ".");
-        			}*/
+                    String saveLocation = sc.next();
+                    
+					
                 	File fileLocation = new File(saveLocation+filename);
+                	if(fileLocation.exists()){
+                		throw new AlreadyExistsException(filename + "already exists in the directory: " + saveLocation + filename + ".");
+        			}
+                	/*
+                	if(fileLocation.getUsableSpace() < receivePacket.getLength()){
+                    	System.out.println("HERE");
+                    	throw new DiskIsFullException("Disk is full or allocation is exceeded.");       
+            		}*/
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
                     write(out,sendReceiveSocket, sendPort, sendPacket);
                     out.close();
-                }/*
+                }
                 catch(AlreadyExistsException a){
                 	System.out.print("helafiodsf");
                 	error = createErrorByte((byte)6, filename + " already exists. CODE 0506.");
@@ -244,6 +276,22 @@ public class TFTPClient extends TFTPHost{
         		    catch (IOException d) {
         			       d.printStackTrace();
         			       System.exit(1);
+        			}
+        		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+        		    System.out.println();
+                }/*
+                catch(DiskIsFullException d){
+                	error = createErrorByte((byte)3, "Disk is full or allocation is exceeded. CODE 0503.");
+                	//Send error packet
+                    sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
+                    printOutgoingInfo(sendPacket,"ERROR",verbose);
+        		    try {
+        			   sendReceiveSocket.send(sendPacket);
+        			   System.out.println("FUCK OFF");
+        			}
+        		    catch (IOException f) {
+        			    f.printStackTrace();
+        			    System.exit(1);
         			}
         		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
         		    System.out.println();

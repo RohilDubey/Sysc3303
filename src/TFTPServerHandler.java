@@ -183,7 +183,7 @@ import java.util.List;
         System.out.println(DESKTOP + filename);   
         try {
             in = new BufferedInputStream(new FileInputStream (DESKTOP + filename));
-            super.read(in, sendReceiveSocket, receivePacket.getPort());
+            super.read(in, sendReceiveSocket, receivePacket.getPort());            
         } 
         catch (FileNotFoundException e) {//File Not Found
             
@@ -195,9 +195,8 @@ import java.util.List;
             	error = createErrorByte((byte)1, filename + " not found. CODE 0501.");
             }
             //Send error packet
-            sendPacket = new DatagramPacket(error, error.length,
-            receivePacket.getAddress(), receivePacket.getPort());
-            printOutgoingInfo(sendPacket,"Server",verbose);
+            sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
+            printOutgoingInfo(sendPacket,"Error",verbose);
 		    try {
 			   sendReceiveSocket.send(sendPacket);
 			}
@@ -207,7 +206,7 @@ import java.util.List;
 			}
 		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 		    System.out.println();
-        }
+        }        
         catch (IOException e) {
         	e.printStackTrace();
         }
@@ -217,28 +216,31 @@ import java.util.List;
     //write method
     public void write() throws WriteAccessException{//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
         BufferedOutputStream out;
+        //Change for regular operation and other tftp error handling
         File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
+        //File file = new File("E:/" + filename);
         Path path = Paths.get(DESKTOP + filename);
         System.out.println(DESKTOP + filename);        
         try {
         	if(file.exists()){
 				throw new AlreadyExistsException(filename + "already exists in the directory: " + DESKTOP + "\\" + parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())) +".");
-			}
-        	System.out.println("HERE");
-        	out = new BufferedOutputStream(new FileOutputStream(DESKTOP+filename));
+			}/*
+        	if(file.getUsableSpace() < receivePacket.getLength()){
+        		System.out.println("HERE");
+            	throw new DiskIsFullException("Disk is full or allocation is exceeded.");          	
+            }*/
+        	//Change for regular operation and other tftp error handling
+        	out = new BufferedOutputStream(new FileOutputStream(DESKTOP +filename));
+        	//out = new BufferedOutputStream(new FileOutputStream("E:/" +filename));
             super.write(out, sendReceiveSocket, writePort, sendPacket);
 			
          }
-        catch (FileNotFoundException e) {//File Not Found
-            e.printStackTrace();
-        } 
         catch(AlreadyExistsException a){
         	System.out.print("helafiodsf");
         	error = createErrorByte((byte)6, filename + " already exists. CODE 0506.");
         	//Send error packet
-            sendPacket = new DatagramPacket(error, error.length,
-            receivePacket.getAddress(), receivePacket.getPort());
-            printOutgoingInfo(sendPacket,"Server",verbose);
+            sendPacket = new DatagramPacket(error, error.length,  receivePacket.getAddress(), receivePacket.getPort());
+            printOutgoingInfo(sendPacket,"ERROR",verbose);
 		    try {
 			   sendReceiveSocket.send(sendPacket);
 			}
@@ -248,7 +250,23 @@ import java.util.List;
 			}
 		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 		    System.out.println();
-        }
+        }/*
+        catch(DiskIsFullException d){
+        	error = createErrorByte((byte)3, "Disk is full or allocation is exceeded. CODE 0503.");
+        	//Send error packet
+            sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
+            printOutgoingInfo(sendPacket,"ERROR",verbose);
+		    try {
+			   sendReceiveSocket.send(sendPacket);
+			   System.out.println("FUCK OFF");
+			}
+		    catch (IOException f) {
+			    f.printStackTrace();
+			    System.exit(1);
+			}
+		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+		    System.out.println();
+        }*/
         catch (IOException e) {
         	e.printStackTrace();
             System.exit(1);
