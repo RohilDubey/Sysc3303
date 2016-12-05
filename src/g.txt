@@ -1,73 +1,169 @@
-public void blockSelection(){
-		String num;		
-		if(debugChoice==1){
-			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
-				System.out.println("Which block would you like to lose?");
-				num = sx.next();
-				actBlock = Integer.parseInt(num);
-			} 
-			else { // request packet
-				actBlock = 0;
-			}
-		}
-		else if(debugChoice==2){
-			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack) 
-				System.out.println("Which block would you like to delay?");
-				num = sx.next();
-				System.out.println("How long do you want to delay the block?");
-				sx.reset();
-				delay = sx.nextInt();
-				actBlock = Integer.parseInt(num);
-			} else { // request packet
-				actBlock = 0;
-			}
-		}
-		else if(debugChoice==3){
-			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
-				System.out.println("Which block would you like to duplicate?");
-				num = sx.next();
-				actBlock = Integer.parseInt(num);
-			} else { // request packet
-				actBlock = 0;
-			}
-		}
-		else if(debugChoice==4){
-			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
-				System.out.println("Which block would you like to change?");
-				num = sx.next();
-				actBlock = Integer.parseInt(num);
-			} else { // request packet
-				actBlock = 0;
-			}
-			if(actBlock == 0){	
-					System.out.println("Enter new Opcode");
-					newOpcode = sx.next();
-				    opcodeC = Integer.parseInt(newOpcode);
+Read request - done
+Write request - done
+Read request - delay 
+Read request - duplicate
+Read request - discard 
+Read request - change filename
+Read request - change ip
+Read request - change opcode
+Read request - change mode
+Write request - delay 
+Write request - duplicate
+Write request - discard 
+Write request - change filename
+Write request - change ip
+Write request - change opcode
+Write request - change mode
+for rrq, wrq, data, ack 
+
+iteration 5:
+1) on launch prompt for save location for both server and client
+2) allow setting of ip address and port for server 
+
+
+change tftp error
+so that whne called 
+prior to sending the packet you change it rather than at launch
+
+
+get rid of al the testerror stuff in host
+
+	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP) throws IOException, AlreadyExistsException, WriteAccessException {
+
+		byte[] resp = new byte[4];
+		resp[0] = 0;
+		resp[1] = 4;
+		byte[] data = new byte[516];
+		int port;
+		boolean bool;
+		try {
+			do {// until receiving a packet <516
+				bool = true;
+				receivePacket = new DatagramPacket(data, 516);
+				// validate and save after we get it
+				timeout = true;
+				while (timeout) {// wait to receive a data packet
+					timeout = false;
+					while(bool)
+					try {
+						bool=false;					
+						sendReceiveSocket.setSoTimeout(25000);
+						System.out.println("testerror5");
+						sendReceiveSocket.setSoTimeout(delayTime);	
+						delayTime = 25000;
+
+						sendReceiveSocket.receive(receivePacket);
+						bool=false;
+						if (!validate(receivePacket)) {
+							if (!parseErrorPacket(receivePacket)) {
+								printIncomingInfo(receivePacket, "ERROR", verbose);
+								System.exit(0);
+							}
+						}
+					} 
+					
+					catch (SocketTimeoutException e) {
+						if(rePrompt()){
+                    		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                    		delayTime = sc.nextInt();    
+                    		System.out.println();  
+                    		System.out.println("waiting for: "+delayTime+"ms.");   
+                    		bool= true;
+                    	}
+						
+						else{
+							try{
+								sendReceiveSocket.send(sendPacketP);	
+								printOutgoingInfo(sendPacketP, "Write", verbose);
+								bool= true;
+							}
+							catch (IOException a) {
+								a.printStackTrace();
+								System.exit(1);
+							}
+						}                      		
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+						System.exit(1);
+					}	
+
+				System.out.println("testerror6");
+
+				port = receivePacket.getPort();
+
+				printIncomingInfo(receivePacket, "Write", verbose);
+
+				// write the data received and verified on the output file
+				out.write(data, 4, receivePacket.getLength() - 4);
+
+				// copy the block number received in the ack response
+
+				System.out.println("testerror7");
+					// copy the block number received in the ack response
+
+				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
+				if(simCheck==23){
+	                	sendPacket = new DatagramPacket(resp, resp.length,InetAddress.getLocalHost(), simCheck);
+	                } else {
+	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
+	                }
+
 				
-					System.out.println("Enter new Filename");
-					newFileName = sx.next();				
+				try {
+					sendReceiveSocket.setSoTimeout(25000);
+					sendReceiveSocket.send(sendPacket);
+					System.out.print(sendPacket.getData());
+				} 
+				catch (SocketException e) {
+					if(rePrompt()==true){
+                		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
+                		int delayTime = sc.nextInt();    
+                		System.out.println();  
+                		System.out.println("waiting for: "+delayTime+"ms.");   
+                		System.out.println();   
+                		sendReceiveSocket.setSoTimeout(delayTime);
+                		System.out.println("Waiting to receivce Packet");
+                		sendReceiveSocket.receive(receivePacket);
+                	}
+				}
+
+					bool = true;	
+				while (bool){
+					try {
+						System.out.println("testerror10");
+						sendReceiveSocket.setSoTimeout(delayTime);
+						delayTime = 25000;
+						sendReceiveSocket.send(sendPacket);
+						sendPacketP = sendPacket;
+						bool = false;
+						System.out.print(sendPacket.getData());
+					} 
+					catch (SocketException e) {
+						bool= true;
+	                	System.out.println("Socket timed out. Will re-send packet");
+					}				
+					catch (IOException e) {
+						bool= true;
+						e.printStackTrace();
+						System.exit(1);
+					}	
+				}
 				
-					System.out.println("Enter new Mode");
-					newMode = sx.next();
+				
+				System.out.println("testerror11");
+
+				printOutgoingInfo(sendPacket, this.toString(), verbose);
+				parseBlock(sendPacket.getData());
+
 			}
-			else{
-				System.out.println("Enter new Opcode");
-				newOpcode = sx.next();
-			    opcodeC = Integer.parseInt(newOpcode);
 			}
+			while (receivePacket.getLength() == 516);
+			System.out.println("write: File transfer ends");
+			out.close();
 		}
-		else if(debugChoice==5){
-			packet = selectPacket();
-			if (packet.contains("2")) { // specific block (data/ack)
-				System.out.println("Which block would you like to change?");
-				num = sx.next();
-				actBlock = Integer.parseInt(num);
-			} else { // request packet
-				actBlock = 0;
-			}
+		catch (IOException e) {
+			e.printStackTrace();
+			System.exit(1);
 		}
 	}
