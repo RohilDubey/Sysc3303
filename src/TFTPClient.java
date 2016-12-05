@@ -263,7 +263,6 @@ public class TFTPClient extends TFTPHost{
      * formatRequest takes a filename and a format and an opcode (which corresponds to read or write)
      * and formats them into a correctly formatted request
      */
-
     public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
     	return super.rePrompt();
     }
