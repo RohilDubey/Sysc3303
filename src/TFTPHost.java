@@ -1,8 +1,6 @@
 //Host.java
 //This class is the parent class of TFTPClient, TFTPSim, TFTPServer containing 
-
-
-//imports 
+//the function to print information 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -25,14 +23,18 @@ public class TFTPHost {
 	protected byte[] error;
 	protected String message;
 	protected DatagramPacket sendPacket, receivePacket, errorPacket;
+
 	protected static final String[] mtype = {"nothing", "RRQ", "WRQ", "DATA", "ACK", "ERROR" };
+
 	protected static Scanner sc;
 	protected boolean verbose;
-	
+
 	// Server folder location
     protected static final String DESKTOP = "C:/temp/Server/";
     protected static final String DELETE = "C:/temp/";
+
 	protected int delayTime;
+
 	public TFTPHost() {
 		delayTime = 25000;
 		sc = new Scanner(System.in);
@@ -81,7 +83,7 @@ public class TFTPHost {
 		
 	}
 
-	// prints relevant information about an incoming packet
+	// prints relevent information about an incoming packet
 	protected void printIncomingInfo(DatagramPacket p, String name, boolean verbose) {
 		int opcode = checkOpcode(p);
 		if (verbose) {
@@ -99,13 +101,11 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + (parseBlock(p.getData())-1));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 5){
-				System.out.println("Recieving an Error Message!");
-				if(!parseErrorPacket(p)){
-					System.exit(0);
-				}
+				System.out.println("Recieving an Error Message!");	
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 0){
 				System.out.println("Sending an unknown TFTP Message!");
@@ -113,10 +113,9 @@ public class TFTPHost {
 			System.out.println();
 		}
 	}
-   
-	public byte[] formatRequest(byte[] filename, byte[] format, int opcode){
+    public byte[] formatRequest(byte[] filename, byte[] format, int opcode) {
         int lf = filename.length,lm=format.length;
-
+	// Format
         byte [] result=new byte[lf+4+lm];
 
         result[0] =(byte) 0;
@@ -151,13 +150,11 @@ public class TFTPHost {
 				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 4){
-				System.out.println("Block number " + (parseBlock(p.getData())-1));
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}	
 			else if (opcode == 5) {
-				System.out.println("Sending an Error Message!");				
-				if(!parseErrorPacket(p)){
-					System.exit(0);
-				}				
+				System.out.println("Sending an Error Message!");
+				System.out.println("Block number " + parseBlock(p.getData()));
 			}
 			else if (opcode == 0){
 				System.out.println("Sending an unknown TFTP Message!");
@@ -170,7 +167,9 @@ public class TFTPHost {
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
 	 */
-	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP) throws IOException, AlreadyExistsException, WriteAccessException {
+
+	
+	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP, boolean quietToggle) throws IOException, AlreadyExistsException, WriteAccessException {
 
 		byte[] resp = new byte[4];
 		resp[0] = 0;
@@ -190,7 +189,6 @@ public class TFTPHost {
 					try {
 						bool=false;					
 						sendReceiveSocket.setSoTimeout(25000);
-						System.out.println("testerror5");
 						sendReceiveSocket.setSoTimeout(delayTime);	
 						delayTime = 25000;
 						sendReceiveSocket.receive(receivePacket);
@@ -226,19 +224,13 @@ public class TFTPHost {
 						System.exit(1);
 					}	
 
-				System.out.println("testerror6");
-
 				port = receivePacket.getPort();
 
 				printIncomingInfo(receivePacket, "Write", verbose);
 
 				// write the data received and verified on the output file
 				out.write(data, 4, receivePacket.getLength() - 4);
-
 				// copy the block number received in the ack response
-
-				System.out.println("testerror7");
-					// copy the block number received in the ack response
 
 				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
 				if(simCheck==23){
@@ -251,7 +243,6 @@ public class TFTPHost {
 					bool = true;	
 				while (bool){
 					try {
-						System.out.println("testerror10");
 						sendReceiveSocket.setSoTimeout(delayTime);
 						delayTime = 25000;
 						sendReceiveSocket.send(sendPacket);
@@ -269,10 +260,6 @@ public class TFTPHost {
 						System.exit(1);
 					}	
 				}
-				
-				
-				System.out.println("testerror11");
-
 				printOutgoingInfo(sendPacket, this.toString(), verbose);
 				parseBlock(sendPacket.getData());
 
@@ -293,7 +280,7 @@ public class TFTPHost {
 	 * from the file in 512 byte chunks and sends them over the socket to the
 	 * port on localhost
 	 */
-	protected void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, int port) throws IOException, AlreadyExistsException, WriteAccessException {
+	protected void read(BufferedInputStream in, DatagramSocket sendReceiveSocket, InetAddress add, int port, boolean quietToggle) throws IOException, AlreadyExistsException, WriteAccessException {
 		// here the client has waited the ack00 before starting reading=sending
 		// data
 		int n;
@@ -320,7 +307,7 @@ public class TFTPHost {
 					message[2] = block1;
 					message[3] = block2;
 					// create the last packet to be sent
-					sendPacket = new DatagramPacket(message, 4, InetAddress.getLocalHost(), port);
+					sendPacket = new DatagramPacket(message, 4, add, port);
 					endFile = true;
 				} 
 				else {
@@ -335,7 +322,7 @@ public class TFTPHost {
 					}
 					
 					// create the packet containing 03 block# and data
-		            sendPacket = new DatagramPacket(message, n + 4, InetAddress.getLocalHost(), port);
+		            sendPacket = new DatagramPacket(message, n + 4, add, port);
 		                
 					if (n < 512) {
 						endFile = true;
@@ -345,7 +332,6 @@ public class TFTPHost {
 				// send the data packet
 				while(timeout){
 					try {
-						System.out.println("testerror13");
 						sendReceiveSocket.send(sendPacket);
 						timeout = false;
 						System.out.print(sendPacket.getData());
@@ -360,7 +346,7 @@ public class TFTPHost {
 					}	
 				}
 				
-				printOutgoingInfo(sendPacket, "Read", verbose);
+				printOutgoingInfo(sendPacket, "Read", quietToggle);
 
 
 				timeout = true;
@@ -368,16 +354,12 @@ public class TFTPHost {
 
 					timeout = false;
 
-					System.out.println("testerror15");
-
 					try {
 						sendReceiveSocket.setSoTimeout(25000);
 						sendReceiveSocket.receive(receivePacket);
-						printIncomingInfo(receivePacket, "Read", verbose);
+						printIncomingInfo(receivePacket, "Read", quietToggle);
 
 						timeout = false;
-						System.out.println("testerror17");
-
 						if (!validate(receivePacket)) {
 							printIncomingInfo(receivePacket, "ERROR", true);
 						}
@@ -571,9 +553,7 @@ public class TFTPHost {
 		}
 	}// checkPort() ends
 	 
-	
-	public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//this is called for re-transmit process
-		//returns true if you chose to wait and false otherwise
+	 public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
 		 boolean waiting = false;	
 		 boolean bool = true;
 	    	String x;
