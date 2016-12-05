@@ -31,6 +31,7 @@ public class TFTPHost {
 
 	// Server folder location
     protected static final String DESKTOP = "C:\\Users\\user\\Desktop\\Server";
+    protected static final String USB = "F:\\";
     protected static final String DELETE = "C:\\temp\\";
 
 	protected int delayTime;
@@ -170,11 +171,8 @@ public class TFTPHost {
 	/*
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
-	 */
-
-	
+	 */	
 	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP, boolean quietToggle) throws IOException, AlreadyExistsException, WriteAccessException {
-
 		byte[] resp = new byte[4];
 		resp[0] = 0;
 		resp[1] = 4;
@@ -228,46 +226,44 @@ public class TFTPHost {
 						System.exit(1);
 					}	
 
-				port = receivePacket.getPort();
-
-				printIncomingInfo(receivePacket, "Write", verbose);
-
-				// write the data received and verified on the output file
-				out.write(data, 4, receivePacket.getLength() - 4);
-				// copy the block number received in the ack response
-
-				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
-				if(simCheck==23){
-	                	sendPacket = new DatagramPacket(resp, resp.length, InetAddress.getLocalHost(), simCheck);
-	                } else {
-	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
-	                }
-
-
+					port = receivePacket.getPort();
+	
+					printIncomingInfo(receivePacket, "Write", verbose);
+	
+					// write the data received and verified on the output file
+					out.write(data, 4, receivePacket.getLength() - 4);
+					// copy the block number received in the ack response
+	
+					System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
+					if(simCheck==23){
+		                	sendPacket = new DatagramPacket(resp, resp.length, InetAddress.getLocalHost(), simCheck);
+		            } 
+					else {
+		                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
+		            }
+					
 					bool = true;	
-				while (bool){
-					try {
-						sendReceiveSocket.setSoTimeout(delayTime);
-						delayTime = 25000;
-						sendReceiveSocket.send(sendPacket);
-						sendPacketP = sendPacket;
-						bool = false;
-						//System.out.print(sendPacket.getData());
-					} 
-					catch (SocketException e) {
-						bool= true;
-	                	System.out.println("Socket timed out. Will re-send packet");
-					}				
-					catch (IOException e) {
-						bool= true;
-						e.printStackTrace();
-						System.exit(1);
-					}	
+					while (bool){
+						try {
+							sendReceiveSocket.setSoTimeout(delayTime);
+							delayTime = 25000;
+							sendReceiveSocket.send(sendPacket);
+							sendPacketP = sendPacket;
+							bool = false;
+						} 
+						catch (SocketException e) {
+							bool= true;
+		                	System.out.println("Socket timed out. Will re-send packet");
+						}				
+						catch (IOException e) {
+							bool= true;
+							e.printStackTrace();
+							System.exit(1);
+						}	
+					}
+					printOutgoingInfo(sendPacket, "Client", verbose);
+					parseBlock(sendPacket.getData());
 				}
-				printOutgoingInfo(sendPacket, this.toString(), verbose);
-				parseBlock(sendPacket.getData());
-
-			}
 			}
 			while (receivePacket.getLength() == 516);
 			System.out.println("write: File transfer ends");
@@ -338,7 +334,6 @@ public class TFTPHost {
 					try {
 						sendReceiveSocket.send(sendPacket);
 						timeout = false;
-						//System.out.print(sendPacket.getData());
 					} 
 					catch (SocketException d) {
 						timeout= true;
@@ -360,9 +355,7 @@ public class TFTPHost {
 
 					try {
 						sendReceiveSocket.setSoTimeout(25000);
-						sendReceiveSocket.receive(receivePacket);
-						//printIncomingInfo(receivePacket, "Read", quietToggle);
-
+						sendReceiveSocket.receive(receivePacket);						
 						timeout = false;
 						if (!validate(receivePacket)) {
 							printIncomingInfo(receivePacket, "ERROR", quietToggle);

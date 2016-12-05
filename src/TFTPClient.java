@@ -101,7 +101,7 @@ public class TFTPClient extends TFTPHost{
 
         System.out.println("Client: Packet sent.");
 
-       //reset timetout
+       //reset timeout
         timeout=true;
         
         // Process the received datagram.
@@ -242,11 +242,7 @@ public class TFTPClient extends TFTPHost{
                 	if(fileLocation.exists()){
                 		throw new AlreadyExistsException(filename + "already exists in the directory: " + saveLocation + filename + ".");
         			}
-                	/*
-                	if(fileLocation.getUsableSpace() < receivePacket.getLength()){
-                    	System.out.println("HERE");
-                    	throw new DiskIsFullException("Disk is full or allocation is exceeded.");       
-            		}*/
+
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
                     write(out,sendReceiveSocket, sendPort, sendPacket, this.verbose);
                     out.close();
@@ -266,22 +262,7 @@ public class TFTPClient extends TFTPHost{
         		    System.out.println("Client: packet sent using port " + sendReceiveSocket.getLocalPort());
         		    System.out.println();
         		    System.exit(1);
-                }/*
-                catch(DiskIsFullException d){
-                	error = createErrorByte((byte)3, "Disk is full or allocation is exceeded. CODE 0503.");
-                	//Send error packet
-                    sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
-                    printOutgoingInfo(sendPacket,"ERROR",verbose);
-        		    try {
-        			   sendReceiveSocket.send(sendPacket);
-        			}
-        		    catch (IOException f) {
-        			    f.printStackTrace();
-        			    System.exit(1);
-        			}
-        		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
-        		    System.out.println();
-                }*/
+                }
                 catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);
