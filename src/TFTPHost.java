@@ -3,6 +3,7 @@
 //the function to print information 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.DatagramPacket;
@@ -32,8 +33,6 @@ public class TFTPHost {
 	// Server folder location
     protected static final String DESKTOP = "C:\\Users\\user\\Desktop\\Server";
     protected static final String USB = "F:\\";
-    protected static final String DELETE = "C:\\temp\\";
-
 	protected int delayTime;
 
 	public TFTPHost() {
@@ -194,7 +193,7 @@ public class TFTPHost {
 						sendReceiveSocket.setSoTimeout(delayTime);	
 						delayTime = 25000;
 						sendReceiveSocket.receive(receivePacket);
-						bool=false;
+						bool=false;						
 						if (!validate(receivePacket)) {
 							printIncomingInfo(receivePacket, "ERROR", verbose);
 							out.close();
@@ -345,11 +344,8 @@ public class TFTPHost {
 						j.printStackTrace();
 						System.exit(1);
 					}	
-				}
-				
+				}				
 				printOutgoingInfo(sendPacket, "Read", quietToggle);
-
-
 				timeout = true;
 				while (timeout) {// wait for the ack of the data sent
 
@@ -357,10 +353,10 @@ public class TFTPHost {
 
 					try {
 						sendReceiveSocket.setSoTimeout(25000);
-						sendReceiveSocket.receive(receivePacket);						
+						sendReceiveSocket.receive(receivePacket);							
 						timeout = false;
 						if (!validate(receivePacket)) {
-							printIncomingInfo(receivePacket, "ERROR", quietToggle);
+							printIncomingInfo(receivePacket, "ERROR", quietToggle);							
 							in.close();
 							System.exit(0);
 						}
@@ -584,7 +580,5 @@ public class TFTPHost {
 	        
 	        sc.reset();
 	        return waiting;
-	        }
-	 
-	 
+	 } 
 }

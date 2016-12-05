@@ -301,7 +301,7 @@ public class TFTPSim extends TFTPHost {
 		else if(debugChoice==5){
 			packet = selectPacket();
 			if (packet.equals("2")) { // specific block (data/ack)
-				System.out.println("Which block would you like to change?");
+				System.out.println("Which block would you like to change the port on?");
 				num = sx.next();
 				actBlock = Integer.parseInt(num);
 			} else { // request packet
@@ -352,7 +352,8 @@ public class TFTPSim extends TFTPHost {
 			if (readTransfer) {
 				System.out.println("[1]: RRQ");
 				System.out.println("[2]: DATA/ACK");
-			} else {
+			} 
+			else {
 				System.out.println("[1]: WRQ");
 				System.out.println("[2]: DATA/ACK");
 			}
