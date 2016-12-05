@@ -3,9 +3,9 @@
 //UDP/IP. This thread receive a read or write packet from a client and
 //sends back the appropriate response without any actual file transfer.
 // 
-//based on SampleSolution for assignment1 given the Sept 19th,2016
 
 
+//Necessary imports
 import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,18 +18,21 @@ import java.security.AccessControlException;
 import java.security.AccessController;
 import java.util.List;
 
-public class TFTPServerHandler extends TFTPHost implements Runnable {
-    // types of requests we can receive
+
+
+//Classes Constructor
+public class TFTPServerHandler extends TFTPHost implements Runnable{
+    // Types of receivable requests 
     public static enum Request { READ, WRITE, ERROR};
 
     // responses for valid requests
     public static final byte[] readResp = {0, 3, 0, 1};
     public static final byte[] writeResp = {0, 4, 0, 0};
     
-    //To check for error
+    //Variable for error flagging
     public boolean boolError = false;
 	
-    //error packet
+    //Error Packet
     public DatagramPacket sendErrorPacket;
   
 
@@ -46,16 +49,18 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
             // on the local host machine. This socket will be used to
             //  send and receive UDP Datagram packets.
             sendReceiveSocket = new DatagramSocket();
-        } catch (SocketException se) {
-            se.printStackTrace();
-            System.exit(1);
+        } 
+        catch (SocketException se){
+           se.printStackTrace();
+           System.exit(1);
         }
-
         this.receivePacket=rp;
         checkFirstMessage();
         //filename=parseFilename(new String(receivePacket.getData(),0,receivePacket.getLength()));
     }
 
+	
+    //Checks for any errors and proceeds if there are none 	
     public void checkFirstMessage(){
         byte[] data=receivePacket.getData(),
         response = new byte[4];
@@ -141,6 +146,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		}
    }
 	    
+    
     public void run() {
         if (!readTransfer) {
             try {
@@ -167,6 +173,8 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         return;
     } 
 
+    
+    //read method
     public void read() throws AlreadyExistsException, WriteAccessException { //first packet sent should be data01
         BufferedInputStream in;      
         File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
@@ -204,6 +212,8 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         }
     }	
 
+    
+    //write method
     public void write() throws WriteAccessException{//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
         BufferedOutputStream out;
         File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
@@ -242,5 +252,3 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         	e.printStackTrace();
             System.exit(1);
         }
-    }
-}
