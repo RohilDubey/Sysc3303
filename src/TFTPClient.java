@@ -59,16 +59,12 @@ public class TFTPClient extends TFTPHost{
         else{
         	sendPort = 23;
         	add = InetAddress.getLocalHost();
-        }	
-            
+        }
         sc.reset();
         System.out.println("Please enter a filename");
-        filename=sc.next();
-
-         
+        filename=sc.next();   
         fn=filename.getBytes();
         md=mode.getBytes();
-
         //form a request with fileame, format, and message type
 
         msg=formatRequest(fn,md,type);
@@ -229,7 +225,7 @@ public class TFTPClient extends TFTPHost{
         			}
 
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
-                    write(out,sendReceiveSocket, sendPort, sendPacket, this.verbose);
+                    write(out,sendReceiveSocket, sendPort, sendPacket, this.verbose, saveLocation + filename);
                     out.close();
                 }
                 catch(AlreadyExistsException a){

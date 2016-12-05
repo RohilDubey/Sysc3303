@@ -183,7 +183,7 @@ import java.util.List;
         File file = new File(DESKTOP + "\\" + filename);
         Path path = file.toPath();
         System.out.println(DESKTOP + "\\" + filename);   
-        try {        	
+        try {  
             in = new BufferedInputStream(new FileInputStream (DESKTOP + "\\" + filename));
             super.read(in, sendReceiveSocket, receivePacket.getAddress(), receivePacket.getPort(), true);  
         } 
@@ -208,7 +208,8 @@ import java.util.List;
 			}
 		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 		    System.out.println();
-        }        
+		    System.exit(1);
+        }
         catch (IOException e) {
         	e.printStackTrace();
         	System.exit(1);
@@ -221,15 +222,13 @@ import java.util.List;
         BufferedOutputStream out;
         //Change for regular operation and other tftp error handling
         File file = new File(DESKTOP+ "\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
-        Path path = Paths.get(DESKTOP + "\\"+ filename);
         System.out.println(DESKTOP + "\\"+ filename);        
         try {
         	if(file.exists()){				
-				throw new AlreadyExistsException(filename + "already exists in the directory: " + DESKTOP + "\\" + parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())) +".");
-			}
-        	//Change for regular operation and other tftp error handling
+				throw new AlreadyExistsException(filename + "already exists in the directory: " + DESKTOP + "\\" + parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())) +".");				
+        	}
         	out = new BufferedOutputStream(new FileOutputStream(DESKTOP + "\\" + filename));
-            super.write(out, sendReceiveSocket, writePort, sendPacket, true);
+            super.write(out, sendReceiveSocket, writePort, sendPacket, true, null);
 			
          }
         catch(AlreadyExistsException a){
@@ -247,7 +246,8 @@ import java.util.List;
 			}
 		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 		    System.out.println();
-        }
+		    System.exit(1);
+        }       
         catch (IOException e) {
         	e.printStackTrace();
         }

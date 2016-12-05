@@ -32,7 +32,6 @@ public class TFTPHost {
 
 	// Server folder location
     protected static final String DESKTOP = "C:\\temp\\Server";
-    protected static final String USB = "F:\\";
 	protected int delayTime;
 
 	public TFTPHost() {
@@ -171,7 +170,7 @@ public class TFTPHost {
 	 * write takes a file outputstream and a communication socket as arguments
 	 * it waits for data on the socket and writes it to the file
 	 */	
-	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP, boolean quietToggle) throws IOException, AlreadyExistsException, WriteAccessException {
+	protected void write(BufferedOutputStream out, DatagramSocket sendReceiveSocket, int simCheck, DatagramPacket sendPacketP, boolean quietToggle, String filepath) throws IOException, AlreadyExistsException, WriteAccessException {
 		byte[] resp = new byte[4];
 		resp[0] = 0;
 		resp[1] = 4;
@@ -193,7 +192,12 @@ public class TFTPHost {
 						sendReceiveSocket.setSoTimeout(delayTime);	
 						delayTime = 25000;
 						sendReceiveSocket.receive(receivePacket);
-						bool=false;						
+						bool=false;			
+						System.out.println(filepath);
+						File file = new File(filepath);
+						if(file.getUsableSpace() < receivePacket.getLength()){
+							throw new IOException ("Disk is full!");
+						}
 						if (!validate(receivePacket)) {
 							printIncomingInfo(receivePacket, "ERROR", verbose);
 							out.close();
@@ -221,11 +225,28 @@ public class TFTPHost {
 								System.exit(1);
 							}
 						}                      		
-					}
+					}catch(IOException e){
+			        	error = createErrorByte((byte)3, "Disk is Full. CODE 0503.");
+			        	//Send error packet
+			            sendPacket = new DatagramPacket(error, error.length,  receivePacket.getAddress(), receivePacket.getPort());
+			            printOutgoingInfo(sendPacket,"ERROR",verbose);
+			            System.out.println("Disk is FULL. CODE 0503.");
+					    try {
+						   sendReceiveSocket.send(sendPacket);
+						}
+					    catch (IOException d) {
+						       d.printStackTrace();
+						       System.exit(1);
+						}
+					    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+					    System.out.println();
+					    System.exit(1);
+			        }
+					/*
 					catch (IOException e) {
 						e.printStackTrace();
 						System.exit(1);
-					}	
+					}	*/
 
 					port = receivePacket.getPort();
 	
@@ -353,7 +374,7 @@ public class TFTPHost {
 
 					try {
 						sendReceiveSocket.setSoTimeout(25000);
-						sendReceiveSocket.receive(receivePacket);							
+						sendReceiveSocket.receive(receivePacket);
 						timeout = false;
 						if (!validate(receivePacket)) {
 							printIncomingInfo(receivePacket, "ERROR", quietToggle);							
@@ -385,8 +406,7 @@ public class TFTPHost {
 					catch (IOException w) {
 						w.printStackTrace();
 						System.exit(1);
-					}		
-
+					}
 				}
 					// check if the ack corresponds to the data sent just before
 					
@@ -576,8 +596,7 @@ public class TFTPHost {
 		        	System.out.println("Invalid character detected");
 		        	System.out.println("Would you like to re-transmit Y/N? or (W)ait");
 		        	}	
-	        }
-	        
+	        }	        
 	        sc.reset();
 	        return waiting;
 	 } 
