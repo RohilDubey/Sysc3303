@@ -159,7 +159,12 @@ public class TFTPHost {
 			}
 			System.out.println();
 		}
+
 	}	
+
+
+	
+ 
 
 	/*
 	 * write takes a file outputstream and a communication socket as arguments

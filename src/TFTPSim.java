@@ -28,6 +28,8 @@ public class TFTPSim extends TFTPHost {
 	private boolean clientOrServer,selectionFlag;
 	private byte[] data;
 	private Scanner sx = new Scanner(System.in);
+	private boolean loseZero;
+
 
 	// responses for valid requests
 	public static final int MAXLENGTH = 516;
@@ -56,6 +58,109 @@ public class TFTPSim extends TFTPHost {
 		}
 	}
 
+	@SuppressWarnings("null")
+	public DatagramPacket removeZero(DatagramPacket p){//Only applicable to RRQ/WRQ
+		//working : modify center 0 remove center 0,modify last,
+		//testing: remove last
+		
+		int value = 0;
+		boolean remove = false;
+		int num = 0;
+		byte[] data = new byte[100];
+		data=p.getData();
+		boolean loop = true;
+		boolean loop2=true;
+		while(loop){
+		System.out.println("Which 0 would you like to modify?");
+		System.out.println("Enter 1: second 0(BETWEEN FILENAME AND MODE)");
+		System.out.println("Enter 2: third 0(END OF MSG)");
+		num = sc.nextInt();
+		if(num>2||num<0){
+			loop = true;
+		}
+		else{
+			loop =false;
+		}
+		} 
+		while(loop2){
+		System.out.println("Would you like to (R)emove or (C)hange the 0?");
+		String dec=sc.next();
+		if(dec.contains("R")||dec.contains("r")){
+			remove =true;
+			loop2=false;
+		}
+		else if(dec.contains("c")||dec.contains("C")){
+			System.out.println("What value would you like change it to?");
+			sc.reset();
+			value=sc.nextInt();
+			remove=false;
+			loop2=false;
+		}
+		else{
+		loop2=true;
+		}
+		}
+		System.out.println();
+		System.out.print("You have chose to");
+		if(remove==true){
+			System.out.print(" remove");
+		}
+		else{
+			System.out.print(" modify");
+		}
+		if(num==2){
+			System.out.print(" the final 0");
+		}
+		if(num==1){
+			System.out.print(" the middle 0");
+		}
+		
+		int location=1;
+		if(remove){//remove
+			while(data[location]!=0){ 
+				location++;
+			}
+			if(num==2){//last zero
+				//don't need to do anything since u onyl replace 0 with 0
+				
+			}
+			if(num==1){
+				byte[] temp =new byte[100];
+				System.arraycopy(data, 0, temp, 0, location);//copy everything before the 0
+				System.arraycopy(data, location, temp, location-1, temp.length-location-1);
+				//System.arraycopy(data, location+1, temp, location, p.getData().length-location);				
+			}
+			
+		}
+		else{//modify
+			while(data[location]!=0){
+				location++;
+			}
+			if(num==1){				
+				data[location]=(byte) value;			
+			}
+			if(num==2){
+				location++;
+				while(data[location]!=0){
+				location++;
+			}
+				data[location]=(byte) value;	
+				
+			}
+			
+			
+		}
+		
+		
+		
+		//num = the 0 we want to alter
+		//remove true means we remove that 0 false means we change it to a value;
+		
+		p.setData(data);	
+		
+		return p;
+	}
+
 	public DatagramPacket changePacket(String newName, String newM, int opC, InetAddress address, int sendPort){
 		byte[] msg = new byte[100], fn, md, data; 
 		DatagramPacket newPacket;
@@ -68,7 +173,6 @@ public class TFTPSim extends TFTPHost {
 		return newPacket = new DatagramPacket(msg, len,
                 address, sendPort);
 	}
-	
 	
 	public void simPrompt() {// menu for choosing errors
 		Scanner s = new Scanner(System.in);
@@ -164,7 +268,7 @@ public class TFTPSim extends TFTPHost {
 			if (packet.contains("2")) { // specific block (data/ack)
 				System.out.println("Which block would you like to change?");
 				num = sx.next();
-				actBlock = Integer.parseInt(num);
+				actBlock = Integer.parseInt(num); 
 			} else { // request packet
 				actBlock = 0;
 			}
@@ -1179,6 +1283,9 @@ public class TFTPSim extends TFTPHost {
 			// Debug options for Client
 			if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { //1st block for client request	
 					try {
+						if(loseZero){
+							sendPacket =removeZero(sendPacket);
+						}
 						sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());						
 						sendReceiveSocket.send(sendPacket);
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
@@ -1191,6 +1298,9 @@ public class TFTPSim extends TFTPHost {
 
 			else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { //nth block of client request
 					try {
+						if(loseZero){
+							sendPacket =removeZero(sendPacket);
+						}
 						sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());						
 						sendReceiveSocket.send(sendPacket);
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
@@ -1254,6 +1364,9 @@ public class TFTPSim extends TFTPHost {
 				// Debug options for Server
 				if ((actBlock == 0 && (firstTransfer) && clientOrServer)) { //1st block for serverOperations
 						try {
+							if(loseZero){
+								sendPacket =removeZero(sendPacket);
+							}
 							sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());	
 							sendReceiveSocket.send(sendPacket);
 							printOutgoingInfo(sendPacket, "Simulator", verbose);
@@ -1268,6 +1381,9 @@ public class TFTPSim extends TFTPHost {
 				else if ((actBlock == parseBlock(sendPacket.getData()) && clientOrServer)) { //nth block of server side operations
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
+							if(loseZero){
+								sendPacket =removeZero(sendPacket);
+							}
 							sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());	
 							sendSocket.send(sendPacket);
 							printOutgoingInfo(sendPacket, "Simulator", verbose);
