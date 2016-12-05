@@ -7,6 +7,8 @@
 /*error code : 05 opcode : 01=filenotfound/02=access violation /03=disk full  or allocation exceed/04=file already exists
  * + force to happen no error sim , opcode +errorcode + usefull message +0 byte and stop*/
 
+
+//Imports
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.DatagramPacket;
@@ -26,7 +28,7 @@ public class TFTPServerListener  extends Thread {
     private boolean status;
     private boolean timeout;
   
-
+    //Constructor for class
     public TFTPServerListener()
     { 
     	super();
@@ -53,6 +55,8 @@ public class TFTPServerListener  extends Thread {
 
     }
 
+    
+    //Sets status of the Server to True to run it
     public void setStatus() {
         status = true;
     }
@@ -95,6 +99,8 @@ public class TFTPServerListener  extends Thread {
         }
     }
 
+    
+    //Checks status of user input to see if to shutdown the Server
     public void checkStat(){
         if (status==true){
         	System.out.println("Server is now shutting down.");
