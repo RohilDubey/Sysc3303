@@ -128,12 +128,12 @@ import java.util.List;
 		}        	
 		
         System.out.println("Valid request as no error has been encountered.");	
-		printIncomingInfo(receivePacket,"Server",verbose);
+		printIncomingInfo(receivePacket,"Server",true);
 			
 		if (req==Request.WRITE) { //if a write request is received the server must send ACK00
 			sendPacket = new DatagramPacket(response, response.length,
 			receivePacket.getAddress(), receivePacket.getPort());	
-			printOutgoingInfo(sendPacket,"Server",verbose);
+			printOutgoingInfo(sendPacket,"Server",true);
 			File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
 			try {
 				sendReceiveSocket.send(sendPacket);
@@ -173,25 +173,80 @@ import java.util.List;
         Thread.currentThread().interrupt();
         return;
     } 
-
+/*
     
     //read method
     public void read() throws AlreadyExistsException, WriteAccessException { 
         BufferedInputStream in;      
         File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
         Path path = Paths.get(DESKTOP + filename);
-        System.out.println(DESKTOP + filename);   
+        System.out.println(DESKTOP + "\\"+ filename);   
         try {
+        	if(Files.isReadable(path) || file.canRead()){
+        		throw new ReadAccessException("Cannot read the file.");
+        	}
+        	
+        	if(!file.exists()){
+        		throw new FileNotFoundException("File not found.");
+        	}
+        	
             in = new BufferedInputStream(new FileInputStream (DESKTOP + filename));
-            super.read(in, sendReceiveSocket, receivePacket.getPort());            
+            super.read(in, sendReceiveSocket, receivePacket.getAddress(), receivePacket.getPort(), true);            
+        } 
+        catch (FileNotFoundException e) {//File Not Found           
+            error = createErrorByte((byte)1, filename + " not found. CODE 0501.");
+            //Send error packet
+            sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
+            printOutgoingInfo(sendPacket,"ERROR",verbose);
+            System.out.println(filename + " not found. CODE 0501.");
+		    try {
+			   sendReceiveSocket.send(sendPacket);
+			}
+		    catch (IOException d) {
+			       d.printStackTrace();
+			       System.exit(1);
+			}
+		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+		    System.out.println();
+        }        
+        catch(ReadAccessException r){
+        	error = createErrorByte((byte)2, "Failed to read the " + filename + ". CODE 0502.");
+        	//Send error packet
+            sendPacket = new DatagramPacket(error, error.length, receivePacket.getAddress(), receivePacket.getPort());
+            printOutgoingInfo(sendPacket,"ERROR",verbose);
+		    try {
+			   sendReceiveSocket.send(sendPacket);
+			}
+		    catch (IOException d) {
+			       d.printStackTrace();
+			       System.exit(1);
+			}
+		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
+		    System.out.println();
+        }
+        catch (IOException e) {
+        	e.printStackTrace();
+        }
+    }	*/
+    
+    //read method
+    public void read() throws AlreadyExistsException, WriteAccessException { 
+        BufferedInputStream in;      
+        File file = new File(DESKTOP + "\\" + filename);
+        Path path = file.toPath();
+        System.out.println(DESKTOP + "\\" + filename);   
+        try {
+            in = new BufferedInputStream(new FileInputStream (DESKTOP + "\\" + filename));
+            //super.read(in, sendReceiveSocket, receivePacket.getPort()); 
+            super.read(in, sendReceiveSocket, receivePacket.getAddress(), receivePacket.getPort(), true);  
         } 
         catch (FileNotFoundException e) {//File Not Found
             
-            if(Files.isReadable(path) || file.canRead()){
-            	
+            if(!Files.isReadable(path)){        	
             	error = createErrorByte((byte)2, "Failed to read the " + filename + ". CODE 0502.");
             }
-            else if(!file.exists()){
+            
+            if(!file.exists()){
             	error = createErrorByte((byte)1, filename + " not found. CODE 0501.");
             }
             //Send error packet
@@ -219,8 +274,8 @@ import java.util.List;
         //Change for regular operation and other tftp error handling
         File file = new File(DESKTOP+"\\"+ parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())));
         //File file = new File("E:/" + filename);
-        Path path = Paths.get(DESKTOP + filename);
-        System.out.println(DESKTOP + filename);        
+        Path path = Paths.get(DESKTOP + "\\"+ filename);
+        System.out.println(DESKTOP + "\\"+ filename);        
         try {
         	if(file.exists()){
 				throw new AlreadyExistsException(filename + "already exists in the directory: " + DESKTOP + "\\" + parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())) +".");
@@ -230,17 +285,17 @@ import java.util.List;
             	throw new DiskIsFullException("Disk is full or allocation is exceeded.");          	
             }*/
         	//Change for regular operation and other tftp error handling
-        	out = new BufferedOutputStream(new FileOutputStream(DESKTOP +filename));
+        	out = new BufferedOutputStream(new FileOutputStream(DESKTOP + "\\" + filename));
         	//out = new BufferedOutputStream(new FileOutputStream("E:/" +filename));
-            super.write(out, sendReceiveSocket, writePort, sendPacket);
+            super.write(out, sendReceiveSocket, writePort, sendPacket, true);
 			
          }
         catch(AlreadyExistsException a){
-        	System.out.print("helafiodsf");
         	error = createErrorByte((byte)6, filename + " already exists. CODE 0506.");
         	//Send error packet
             sendPacket = new DatagramPacket(error, error.length,  receivePacket.getAddress(), receivePacket.getPort());
             printOutgoingInfo(sendPacket,"ERROR",verbose);
+            System.out.println(filename + " already exists. CODE 0506.");
 		    try {
 			   sendReceiveSocket.send(sendPacket);
 			}
@@ -258,7 +313,6 @@ import java.util.List;
             printOutgoingInfo(sendPacket,"ERROR",verbose);
 		    try {
 			   sendReceiveSocket.send(sendPacket);
-			   System.out.println("FUCK OFF");
 			}
 		    catch (IOException f) {
 			    f.printStackTrace();

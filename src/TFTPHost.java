@@ -30,8 +30,8 @@ public class TFTPHost {
 	protected boolean verbose;
 
 	// Server folder location
-    protected static final String DESKTOP = "C:/temp/Server/";
-    protected static final String DELETE = "C:/temp/";
+    protected static final String DESKTOP = "C:\\Users\\user\\Desktop\\Server";
+    protected static final String DELETE = "C:\\temp\\";
 
 	protected int delayTime;
 
@@ -105,7 +105,9 @@ public class TFTPHost {
 			}
 			else if (opcode == 5){
 				System.out.println("Recieving an Error Message!");	
-				System.out.println("Block number " + parseBlock(p.getData()));
+				if(!parseErrorPacket(p)){
+					System.exit(1);
+				}
 			}
 			else if (opcode == 0){
 				System.out.println("Sending an unknown TFTP Message!");
@@ -154,7 +156,9 @@ public class TFTPHost {
 			}	
 			else if (opcode == 5) {
 				System.out.println("Sending an Error Message!");
-				System.out.println("Block number " + parseBlock(p.getData()));
+				if(!parseErrorPacket(p)){
+					System.exit(1);
+				}
 			}
 			else if (opcode == 0){
 				System.out.println("Sending an unknown TFTP Message!");
@@ -234,7 +238,7 @@ public class TFTPHost {
 
 				System.arraycopy(receivePacket.getData(), 2, resp, 2, 2);
 				if(simCheck==23){
-	                	sendPacket = new DatagramPacket(resp, resp.length,InetAddress.getLocalHost(), simCheck);
+	                	sendPacket = new DatagramPacket(resp, resp.length, InetAddress.getLocalHost(), simCheck);
 	                } else {
 	                	sendPacket = new DatagramPacket(resp, resp.length,receivePacket.getAddress(), receivePacket.getPort());
 	                }
@@ -248,7 +252,7 @@ public class TFTPHost {
 						sendReceiveSocket.send(sendPacket);
 						sendPacketP = sendPacket;
 						bool = false;
-						System.out.print(sendPacket.getData());
+						//System.out.print(sendPacket.getData());
 					} 
 					catch (SocketException e) {
 						bool= true;
@@ -334,7 +338,7 @@ public class TFTPHost {
 					try {
 						sendReceiveSocket.send(sendPacket);
 						timeout = false;
-						System.out.print(sendPacket.getData());
+						//System.out.print(sendPacket.getData());
 					} 
 					catch (SocketException d) {
 						timeout= true;
@@ -357,11 +361,11 @@ public class TFTPHost {
 					try {
 						sendReceiveSocket.setSoTimeout(25000);
 						sendReceiveSocket.receive(receivePacket);
-						printIncomingInfo(receivePacket, "Read", quietToggle);
+						//printIncomingInfo(receivePacket, "Read", quietToggle);
 
 						timeout = false;
 						if (!validate(receivePacket)) {
-							printIncomingInfo(receivePacket, "ERROR", true);
+							printIncomingInfo(receivePacket, "ERROR", quietToggle);
 						}
 					} 
 					catch (SocketTimeoutException x) {
@@ -553,7 +557,8 @@ public class TFTPHost {
 		}
 	}// checkPort() ends
 	 
-	 public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
+	 public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException
+	 {//TODO A1
 		 boolean waiting = false;	
 		 boolean bool = true;
 	    	String x;
@@ -583,7 +588,6 @@ public class TFTPHost {
 	        sc.reset();
 	        return waiting;
 	        }
-	 
 	 
 	 
 }

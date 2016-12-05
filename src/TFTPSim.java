@@ -254,13 +254,13 @@ public class TFTPSim extends TFTPHost {
 			if (packet.equals("2")) { // specific block (data/ack) 
 				System.out.println("Which block would you like to delay?");
 				num = sx.next();
-				System.out.println("How long do you want to delay the block?");
-				sx.reset();
-				delay = sx.nextInt();
 				actBlock = Integer.parseInt(num);
 			} else { // request packet
 				actBlock = 0;
 			}
+			System.out.println("How long do you want to delay the block?");
+			sx.reset();
+			delay = sx.nextInt();
 		}
 		else if(debugChoice==3){
 			packet = selectPacket();
@@ -390,8 +390,7 @@ public class TFTPSim extends TFTPHost {
 		finalMessage = false;
 		firstTransfer = false;
 		lengthCheck = false;	
-		byte[] data;
-		for (;;) { // loop forever			
+		byte[] data;			
 				
 			do {
 				data = new byte[516];
@@ -561,7 +560,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-		} // end of loop
+			simPrompt();
 	}
 	
 	public void losePacket(){//instead of sending a packet, when the actBlock is reached it skip the send
@@ -570,10 +569,6 @@ public class TFTPSim extends TFTPHost {
 		firstTransfer = false;
 		lengthCheck = false;
 		byte[] data;
-		for (;;) { // loop forever			
-			
-			
-						
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
@@ -705,11 +700,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-		} // end of loop
-
-		
-		
-		
+			simPrompt();
 	}
 	
 	public void duplicatePacket(){//send off 2 packets instead of 1
@@ -721,29 +712,16 @@ public class TFTPSim extends TFTPHost {
 						
 		
 		byte[] data;
-		for (;;) { // loop forever			
-			
-			
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
 				System.out.println("Simulator: Waiting for packet.");
 				
 				try {
-					receiveSocket.receive(receivePacket);//wait untill you receive a packet
+					receiveSocket.receive(receivePacket);//wait until you receive a packet
 				} catch (IOException e) {
 					e.printStackTrace();
 					System.exit(1);
-				}
-				
-				if (!transferStatus && promptCheck) {//if already prompted 
-					blockSelection(); 
-					firstTransfer = true;
-				}
-				else if(!promptCheck){
-					this.promptCheck =true;
-					this.simPrompt();
-					this.filter();
 				}
 				
 				printIncomingInfo(receivePacket, "Simulator", verbose);//print the received packet details
@@ -758,11 +736,11 @@ public class TFTPSim extends TFTPHost {
 				}
 				// Debug options for Client
 				if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { //1st block for client request						
-						printOutgoingInfo(sendPacket, "Simulator", verbose);
-						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
 							sendReceiveSocket.send(sendPacket);
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
 							sendReceiveSocket.send(sendPacket);
+							printOutgoingInfo(sendPacket, "Simulator", verbose);
 						} catch (IOException e) {
 							e.printStackTrace();
 							System.exit(1);
@@ -771,7 +749,6 @@ public class TFTPSim extends TFTPHost {
 				}
 
 				else if ((actBlock == parseBlock(sendPacket.getData()) && !clientOrServer)) { //nth block of client request
-					
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						printOutgoingInfo(sendPacket, "Simulator", verbose);
 						try {
@@ -880,7 +857,7 @@ public class TFTPSim extends TFTPHost {
 				System.out.println("Simulator: packet sent using port " + sendSocket.getLocalPort());
 				System.out.println();
 				transferStatus = true;
-				if (checkPacket.getLength() == MAXLENGTH) {
+				if (checkPacket.getLength() < MAXLENGTH) {
 					lengthCheck = true;
 				}
 			} while ((lengthCheck && !finalMessage) || (firstTransfer && !readTransfer));
@@ -888,8 +865,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-		} // end of loop
-
+			simPrompt();
 	}
 	
 	public void passPacket(){//basic pass
@@ -898,10 +874,6 @@ public class TFTPSim extends TFTPHost {
 		firstTransfer = false;
 		lengthCheck = false;
 		byte[] data;
-		for (;;) { // loop forever			
-			
-			
-						
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
@@ -1062,8 +1034,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-		} // end of loop
-
+			simPrompt();
 	}
 		
 	public void invalidPort(){//invalid port
@@ -1072,10 +1043,6 @@ public class TFTPSim extends TFTPHost {
 		firstTransfer = false;
 		lengthCheck = false;
 		byte[] data;
-		for (;;) { // loop forever			
-			
-			
-						
 			do {
 				data = new byte[516];
 				receivePacket = new DatagramPacket(data, data.length);
@@ -1241,8 +1208,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-		} // end of loop
-
+			simPrompt();
 	}
 	
 	public void opcodePacket(){//this is for creating all the illegal TFTP 
@@ -1258,9 +1224,6 @@ public class TFTPSim extends TFTPHost {
 					
 	
 	byte[] data;
-	for (;;) { // loop forever			
-		
-		
 		do {
 			data = new byte[516];
 			receivePacket = new DatagramPacket(data, data.length);
@@ -1432,8 +1395,7 @@ public class TFTPSim extends TFTPHost {
 		// We're finished with this socket, so close it.
 		transferStatus = true;
 		sendSocket.close();
-	} // end of loop
-
+		simPrompt();
 }
 	
 	public void filter(){//based on the debugChoice, select the correct way to pass.
