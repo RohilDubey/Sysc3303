@@ -114,8 +114,9 @@ public class TFTPClient extends TFTPHost{
             	// also file has to be saved in desktop/server folder 
             	System.out.println("Where is the file location?");
                 String saveLocation = sc.next();
+
                 File fileLocation = new File(saveLocation+filename);
-                Path path = Paths.get(saveLocation + filename);
+                //Path path = Paths.get(saveLocation + filename);
                 try {
                 	/*
                 	if(!fileLocation.canWrite()){
@@ -132,24 +133,30 @@ public class TFTPClient extends TFTPHost{
                         	sendReceiveSocket.setSoTimeout(25000);
                             sendReceiveSocket.receive(receivePacket);
                          
-                        } catch (SocketException e) {//CATCH TIMEOUT EXCEPTION
-                        	if(rePrompt()==true){
+                        } catch (SocketTimeoutException e) {
+    						if(rePrompt()==true){
                         		System.out.println("How long would you like to wait for?(Enter 0 for infinite)");
                         		int delayTime = sc.nextInt();    
                         		System.out.println();  
                         		System.out.println("waiting for: "+delayTime+"ms.");   
-                        		System.out.println();   
-                        		sendReceiveSocket.setSoTimeout(delayTime);
-                        		System.out.println("Waiting to receivce Packet");
-                        		sendReceiveSocket.receive(receivePacket);
                         	}
-                            timeout = true;
-                            if (shutdown) {
-                                System.exit(0);
-                            }
-                        }
+    						else{
+    							try{
+    								sendReceiveSocket.send(sendPacket);	
+    							}
+    							catch (IOException a) {
+    								a.printStackTrace();
+    								System.exit(1);
+    							}
+    						}
+                           		
+    					}
+    					catch (IOException e) {
+    						e.printStackTrace();
+    						System.exit(1);
+    					}		
                     }
-                    
+                   
                     printIncomingInfo(receivePacket,"Client",verbose);
                     
                     //Check if error Packet was received
@@ -214,16 +221,17 @@ public class TFTPClient extends TFTPHost{
             	//here the client doesn't have to wait for ack00 start directly to write
                 try {
                 	System.out.println("Where would you like to save the file?");
+
                 	
-                    String saveLocation = sc.next();
-                    /*if(file.exists()){
+                    String saveLocation = sc.next();/*
+                    if(file.exists()){
                 		throw new AlreadyExistsException(filename + "already exists in the directory: " + saveLocation + filename + ".");
         			}*/
-                	File fileLocation = new File(saveLocation+filename);                    	
+                	File fileLocation = new File(saveLocation+filename);
                     BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(fileLocation));
-                    write(out,sendReceiveSocket, sendPort);
+                    write(out,sendReceiveSocket, sendPort, sendPacket);
                     out.close();
-                }
+                }/*
                 catch(AlreadyExistsException a){
                 	System.out.print("helafiodsf");
                 	error = createErrorByte((byte)6, filename + " already exists. CODE 0506.");
@@ -239,7 +247,7 @@ public class TFTPClient extends TFTPHost{
         			}
         		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
         		    System.out.println();
-                }
+                }*/
                 catch (IOException e) {
                     e.printStackTrace();
                     System.exit(1);

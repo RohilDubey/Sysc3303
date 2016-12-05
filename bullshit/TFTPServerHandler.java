@@ -202,7 +202,7 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         catch (IOException e) {
         	e.printStackTrace();
         }
-    }
+    }	
 
     public void write() throws WriteAccessException{//the ACK00 has already been sent , so next packet send must be ack01 when receiving data01
         BufferedOutputStream out;
@@ -213,8 +213,9 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
         	if(file.exists()){
 				throw new AlreadyExistsException(filename + "already exists in the directory: " + DESKTOP + "\\" + parseFilename(new String(receivePacket.getData(), 0, receivePacket.getLength())) +".");
 			}
+        	System.out.println("HERE");
         	out = new BufferedOutputStream(new FileOutputStream(DESKTOP+filename));
-            super.write(out, sendReceiveSocket, writePort);
+            super.write(out, sendReceiveSocket, writePort, sendPacket);
 			
          }
         catch (FileNotFoundException e) {//File Not Found
@@ -237,9 +238,9 @@ public class TFTPServerHandler extends TFTPHost implements Runnable {
 		    System.out.println("Server: packet sent using port " + sendReceiveSocket.getLocalPort());
 		    System.out.println();
         }
-
         catch (IOException e) {
         	e.printStackTrace();
+            System.exit(1);
         }
     }
 }
