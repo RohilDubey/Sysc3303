@@ -57,7 +57,6 @@ public class TFTPSim extends TFTPHost {
 		}
 	}
 
-	@SuppressWarnings("null")
 	public DatagramPacket removeZero(DatagramPacket p){//Only applicable to RRQ/WRQ
 		//working : modify center 0 remove center 0,modify last,
 		//testing: remove last
