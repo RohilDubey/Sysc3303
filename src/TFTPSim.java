@@ -561,7 +561,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-			simPrompt();
+			
 	}
 	
 	public void losePacket(){//instead of sending a packet, when the actBlock is reached it skip the send
@@ -701,7 +701,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-			simPrompt();
+			
 	}
 	
 	public void duplicatePacket(){//send off 2 packets instead of 1
@@ -866,7 +866,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-			simPrompt();
+			
 	}
 	
 	public void passPacket(){//basic pass
@@ -1035,7 +1035,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-			simPrompt();
+			
 	}
 		
 	public void invalidPort(){//invalid port
@@ -1209,7 +1209,7 @@ public class TFTPSim extends TFTPHost {
 			// We're finished with this socket, so close it.
 			transferStatus = true;
 			sendSocket.close();
-			simPrompt();
+			
 	}
 	
 	public void opcodePacket(){//this is for creating all the illegal TFTP 
@@ -1396,7 +1396,7 @@ public class TFTPSim extends TFTPHost {
 		// We're finished with this socket, so close it.
 		transferStatus = true;
 		sendSocket.close();
-		simPrompt();
+		
 }
 	
 	public void filter(){//based on the debugChoice, select the correct way to pass.
