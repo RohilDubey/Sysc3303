@@ -572,7 +572,8 @@ public class TFTPHost {
 	}// checkPort() ends
 	 
 	
-	public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//TODO A1
+	public boolean rePrompt() throws UnknownHostException, AlreadyExistsException, WriteAccessException{//this is called for re-transmit process
+		//returns true if you chose to wait and false otherwise
 		 boolean waiting = false;	
 		 boolean bool = true;
 	    	String x;
