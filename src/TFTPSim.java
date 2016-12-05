@@ -74,6 +74,16 @@ public class TFTPSim extends TFTPHost {
 		System.out.println("Enter 1: second 0(BETWEEN FILENAME AND MODE)");
 		System.out.println("Enter 2: third 0(END OF MSG)");
 		num = sc.nextInt();
+		
+		/*
+		 * The following prompts the user to select which 
+		 * 0 the would like to remove
+		 * 1st zero is part of 2 byte opcode, we can ignore that since we already
+		 * have the change opcode
+		 * The next 0 is between the file name and the mode
+		 * the last zero is after the mode, you can't remove it since it will just be 0 anyway	
+		 */
+		
 		if(num>2||num<0){
 			loop = true;
 		}
@@ -81,6 +91,8 @@ public class TFTPSim extends TFTPHost {
 			loop =false;
 		}
 		} 
+		
+		
 		while(loop2){
 		System.out.println("Would you like to (R)emove or (C)hange the 0?");
 		String dec=sc.next();
@@ -88,6 +100,8 @@ public class TFTPSim extends TFTPHost {
 			remove =true;
 			loop2=false;
 		}
+		
+		
 		else if(dec.equals("c")||dec.equals("C")){
 			System.out.println("What value would you like change it to?");
 			sc.reset();
@@ -99,6 +113,8 @@ public class TFTPSim extends TFTPHost {
 		loop2=true;
 		}
 		}
+		//build the conformation message
+		
 		System.out.println();
 		System.out.print("You have chose to");
 		if(remove==true){
@@ -116,56 +132,50 @@ public class TFTPSim extends TFTPHost {
 		
 		int location=1;
 		if(remove){//remove
-			while(data[location]!=0){ 
+			while(data[location]!=0){ //iterate through the bytes looking for the first 0
 				location++;
 			}
 			if(num==2){//last zero
-				//don't need to do anything since u onyl replace 0 with 0
+				//don't need to do anything since you replace 0 with 0
 				
 			}
 			if(num==1){
 				byte[] temp =new byte[100];
 				System.arraycopy(data, 0, temp, 0, location);//copy everything before the 0
 				System.arraycopy(data, location, temp, location-1, temp.length-location-1);
-				//System.arraycopy(data, location+1, temp, location, p.getData().length-location);				
+							
 			}
 			
 		}
 		else{//modify
 			while(data[location]!=0){
-				location++;
+				location++;//iterate through the byte array
 			}
 			if(num==1){				
-				data[location]=(byte) value;			
+				data[location]=(byte) value;	//change the found 0 to whatever the user asked for		
 			}
 			if(num==2){
 				location++;
-				while(data[location]!=0){
+				while(data[location]!=0){//iterate through a second time to find the 2nd 0
 				location++;
 			}
-				data[location]=(byte) value;	
+				data[location]=(byte) value;	//change the value of the last 0
 				
 			}
 			
 			
 		}
 		
-		
-		
-		//num = the 0 we want to alter
-		//remove true means we remove that 0 false means we change it to a value;
-		
 		p.setData(data);	
 		
 		return p;
 	}
 
-	public DatagramPacket changePacket(String newName, String newM, int opC, InetAddress address, int sendPort){
+	public DatagramPacket changePacket(String newName, String newM, int opC, InetAddress address, int sendPort){//change the packet opcode,mode and filename all at once
 		byte[] msg = new byte[100], fn, md, data; 
 		DatagramPacket newPacket;
 		fn=newName.getBytes();
 		md=newM.getBytes();
-		
 		//form a request with filename, format, and message type
 		msg=formatRequest(fn,md,opC);
 		len = fn.length+md.length+4;	
@@ -226,7 +236,7 @@ public class TFTPSim extends TFTPHost {
 		
 	}
 	
-	public void blockSelection(){
+	public void blockSelection(){//chose the block being acted on
 		String num;		
 		if(debugChoice==1){
 			packet = selectPacket();
@@ -300,13 +310,13 @@ public class TFTPSim extends TFTPHost {
 		}
 	}
 	
-	public int portChange(int port){
+	public int portChange(int port){//Change the port based on input
 		System.out.println("Enter the new port that you'd like to use");
 		int newPort=sx.nextInt();
 		return newPort;
 	}
 
-	public boolean checkRequest() {
+	public boolean checkRequest() {//checks for RRQ/WRQ/ERROR
 		byte[] data = receivePacket.getData();
 		if (data[0] != 0)
 			req = Request.ERROR; // bad
@@ -321,7 +331,7 @@ public class TFTPSim extends TFTPHost {
 		return readTransfer;
 	}
 
-	public String selectPacket() {
+	public String selectPacket() {//Chose which packets gets acted on
 		readTransfer = checkRequest();
 		String choice;
 		do {
@@ -374,7 +384,7 @@ public class TFTPSim extends TFTPHost {
 		return choice;
 	}
 		
-	public void delayPacket(){
+	public void delayPacket(){//will delay for a specified amount of time, may cause timeoutException that will be handled
 		
 		transferStatus = false;
 		finalMessage = false;
@@ -554,7 +564,7 @@ public class TFTPSim extends TFTPHost {
 		} // end of loop
 	}
 	
-	public void losePacket(){
+	public void losePacket(){//instead of sending a packet, when the actBlock is reached it skip the send
 		transferStatus = false;
 		finalMessage = false;
 		firstTransfer = false;
@@ -702,7 +712,7 @@ public class TFTPSim extends TFTPHost {
 		
 	}
 	
-	public void duplicatePacket(){
+	public void duplicatePacket(){//send off 2 packets instead of 1
 		
 			transferStatus = false;
 			finalMessage = false;
@@ -1056,7 +1066,7 @@ public class TFTPSim extends TFTPHost {
 
 	}
 		
-	public void invalidPort(){//basic pass
+	public void invalidPort(){//invalid port
 		transferStatus = false;
 		finalMessage = false;
 		firstTransfer = false;
@@ -1235,8 +1245,12 @@ public class TFTPSim extends TFTPHost {
 
 	}
 	
-	public void opcodePacket(){
-		
+	public void opcodePacket(){//this is for creating all the illegal TFTP 
+		/*
+		 * this is for creating all the illegal TFTP 
+		 * new Opcode,new fileName,new mode,delete/modify 0  
+		 * 
+		 */
 		transferStatus = false;
 		finalMessage = false;
 		firstTransfer = false;
@@ -1282,7 +1296,7 @@ public class TFTPSim extends TFTPHost {
 			// Debug options for Client
 			if ((actBlock == 0 && (firstTransfer) && !clientOrServer)) { //1st block for client request	
 					try {
-						if(loseZero){
+						if(loseZero){//if the user chose to remove/modify a 0
 							sendPacket =removeZero(sendPacket);
 						}
 						sendPacket = changePacket(newFileName, newMode, opcodeC, sendPacket.getAddress(), sendPacket.getPort());						
@@ -1422,7 +1436,7 @@ public class TFTPSim extends TFTPHost {
 
 }
 	
-	public void filter(){
+	public void filter(){//based on the debugChoice, select the correct way to pass.
 		
 		if(debugChoice ==0){
 			System.out.println();
@@ -1464,7 +1478,7 @@ public class TFTPSim extends TFTPHost {
 		
 	}
 
-	public static void main(String args[]) {
+	public static void main(String args[]) {//main
 		TFTPSim t = new TFTPSim();
 		t.promptCheck=true;
 		t.simPrompt();
